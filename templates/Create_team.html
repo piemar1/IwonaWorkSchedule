@@ -1,0 +1,42 @@
+{% extends "Grafik Iwonki.html" %}
+{% block body %}
+
+
+
+<p>Wprowadź dane osób z zespołu.</p>
+<form action="{{url_for('plus_person')}}" method="post" id="plus_person"></form>
+<form action="{{url_for('minus_person')}}" method="post" id="minus_person"></form>
+
+<button type="submit" form="plus_person" value="dodaj osobę">dodaj osobę</button>
+<button type="submit" form="minus_person" value="odejmij osobę">odejmij osobę</button>
+<p> Wprowadź nazwę dla zaespołu.
+<p>Domyślnie będzie on zawierał dzisiejszą datę ale wprowadź cos od siebie.
+
+
+<table style="width:100%">
+    <form action="{{url_for('save_team')}}" method="post" id="save_team">
+    <button type="submit" form="save_team" value="Zapisz załogę">Zapisz załogę</button>
+    <input type="text" name="team_name" value="{{today}}">
+    <p>
+
+    <tr>
+    <td>Liczba</td>
+    <td>Imię Nazwisko</td>
+    </tr>
+    {% for n in range(size)%}
+    <tr>
+        <td>{{n + 1}}</td>
+        <td><input type="text" name="person{{n}}" value="name{{n}}"></td>
+    </tr>
+    </form>
+    {% endfor %}
+</table>
+
+
+
+
+
+
+
+
+{% endblock %}

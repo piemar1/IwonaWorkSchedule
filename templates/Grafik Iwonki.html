@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <style>
+    #header {
+    background-color:black;
+    color:white;
+    text-align:center;
+    padding:5px;
+    }
+    # main {
+    background-color:#eeeeee;
+    }
+    #footer {
+    background-color:black;
+    color:white;
+    text-align:center;
+    padding:5px;
+    }
+    #new_schedule {
+    background-color:#eeeeee;
+    float:left;
+    padding:5px
+    }
+    #edit_team {
+    background-color:#eeeeee;
+    float:left;
+    padding:5px
+    }
+    #edit_schedules {
+    background-color:#eeeeee;
+    float:left;
+    padding:5px
+    }
+
+    </style>
+    <title>Grafik Iwonki</title>
+</head>
+
+<body>
+    <div id="main">
+    <div id="header">
+        <h1>Grafik Iwonki</h1>
+    </div>
+    <div id="new_schedule">
+        <form action="{{url_for('start_new_schedule')}}" method="post">
+            <p>Tworzenie nowegografiku pracy.</p>
+
+            <select name="month">
+            {% for month in months %}
+                <option value="{{month}}">{{month}}</option>
+            {% endfor %}
+            </select>
+
+            <select name="year">
+            {% for year in years %}
+                <option value="{{year}}">{{year}}</option>
+            {% endfor %}
+            </select>
+
+            <p><input type="submit" value="Stwórz nowy grafik"></p>
+        </form>
+    </div>
+
+    <div id="edit_team">
+        <form action="{{url_for('create_team')}}" method="post" id="create_team_form"></form>
+        <form action="{{url_for('delete_team')}}" method="post" id="delete_team_form"></form>
+
+        <p>Wprowadź dane załogi,dla której tworzysz grafik.</p>
+        <p> Lista istniejących już teamów do wyboru - DO ZROBIENIA</p>
+        <button type="submit" form="create_team_form" value="Wprowadź dane załogi">Wprowadź dane załogi</button>
+        <button type="submit" form="delete_team_form" value="Usuń załogę">Usuń załogę</button>
+
+        <p>Należy dodac okno potwierdzające czy</p>
+        <p>użytkownik chce usunąć team - DO ZROBIENIA</p>
+    </div>
+
+    <div id="edit_schedules">
+        <p>Edycja istniejącego grafiku.</p>
+        <p>Lista istniejących już gafików do wyboru - DO ZROBIENIA</p>
+        <input type="submit" value="Edycja grafiku">
+        <input type="submit" value="Usunięcie grafiku">
+        <p>Należy dodac okno potwierdzające czy użytkownik </p>
+        <p>chce usunąć grafik - DO ZROBIENIA</p>
+    </div>
+    </div>
+#########################################################################################
+{% block body %} {% endblock %}
+
+
+<div id="footer">
+Copyright Marcin Pieczyński
+</div>
+</body>
+</html>

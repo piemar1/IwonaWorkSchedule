@@ -1,0 +1,45 @@
+{% extends "Grafik Iwonki.html" %}
+{% block body %}
+
+<p>Wprowadź dane dla grafiku.</p>
+<p></p>
+
+<table style="width:100%">
+    <tr>
+        <td>Imię Nazwisko</td>
+        {% for day in range(day_no) %}
+            <td>{{day + 1}}</td>
+        {% endfor %}
+    </tr>
+    {% for osoba in range(10) %}
+    <tr>
+        <td>osoba{{osoba}}</td>
+        {% for day in range(day_no) %}
+            <td>
+            <select name="work">
+            {% for w in work %}
+                <option value="{{w}}" SELECTED>{{w}}</option>
+            {% endfor %}
+            </select>
+            </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
