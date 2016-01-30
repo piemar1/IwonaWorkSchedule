@@ -11,7 +11,7 @@ print d.resolution
 print d.month
 
 
-print "33333333333333333"
+print "####################"
 m =datetime.datetime
 print m.today()
 print m.today().ctime()
