@@ -1,42 +1,57 @@
 {% extends "Grafik Iwonki.html" %}
 {% block body %}
 
-
-
 <p>Wprowadź dane osób z zespołu.</p>
-<form action="{{url_for('plus_person')}}" method="post" id="plus_person"></form>
-<form action="{{url_for('minus_person')}}" method="post" id="minus_person"></form>
 
-<button type="submit" form="plus_person" value="dodaj osobę">dodaj osobę</button>
-<button type="submit" form="minus_person" value="odejmij osobę">odejmij osobę</button>
-<p> Wprowadź nazwę dla zaespołu.
+<form action="{{url_for('team_update')}}" method="post" id="team">
+
+<p> Wprowadź nazwę dla zespołu.
 <p>Domyślnie będzie on zawierał dzisiejszą datę ale wprowadź cos od siebie.
+<p></p>
+Tutaj wpisz nazwę dla zespołu -->
 
+{% if not team %}
+<input type="text" name="team_name" value="{{today}}">
+{% endif %}
+{% if team %}
+<input type="text" name="team_name" value="{{team[0]}}">
+{% endif %}
 
-<table style="width:100%">
-    <form action="{{url_for('save_team')}}" method="post" id="save_team">
-    <button type="submit" form="save_team" value="Zapisz załogę">Zapisz załogę</button>
-    <input type="text" name="team_name" value="{{today}}">
-    <p>
+<input type="submit" name="create_team" value="Zapisz załogę">
+<p></p>
+<input type="submit" name="create_team" value="dodaj osobę">
+<input type="submit" name="create_team" value="odejmij osobę">
+<p></p>
 
-    <tr>
-    <td>Liczba</td>
-    <td>Imię Nazwisko</td>
-    </tr>
-    {% for n in range(size)%}
-    <tr>
-        <td>{{n + 1}}</td>
-        <td><input type="text" name="person{{n}}" value="name{{n}}"></td>
-    </tr>
-    </form>
-    {% endfor %}
-</table>
+{% if not team %}
+    <table style="width:100%">
+        <tr>
+        <td>Liczba</td>
+        <td>Imię Nazwisko</td>
+        </tr>
+        {% for n in range(size)%}
+        <tr>
+            <td>{{n + 1}}</td>
+            <td><input type="text" name="person{{n}}" value=""></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
 
-
-
-
-
-
-
+{% if team %}
+    <table style="width:100%">
+        <tr>
+        <td>Liczba</td>
+        <td>Imię Nazwisko</td>
+        </tr>
+        {% for n in range(size)%}
+        <tr>
+            <td>{{n + 1}}</td>
+            <td><input type="text" name="person{{n}}" value="{{team[1][n]}}"></td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+</form>
 
 {% endblock %}

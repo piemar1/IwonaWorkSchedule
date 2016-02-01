@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
 
-import random
-import string
-import sys
-import logging
-from flask import Flask, render_template, url_for, flash, redirect, request
+# import random
+# import string
+# import sys
+# import logging
+# import urllib2
+
+from flask import Flask, render_template, url_for, flash, redirect, request, g
 import datetime
 import calendar
-# import urllib2
+import webbrowser
+import sqlite3
+from contextlib import closing
 
 
 DEBUG = True  # configuration
 SECRET_KEY = 'l55Vsm2ZJ5q1U518PlxfM5IE2T42oULB'
+DATABASE = "database.db"
 
 app = Flask(__name__)
-app.config.from_object(__name__)
+app.config.from_object(__name__)   # wprowadzanie konfiguracja aplikacji z obecnej lokalizacji
 
 # app.logger.addHandler(logging.StreamHandler(sys.stdout))
 # app.logger.setLevel(logging.ERsROR)
@@ -22,7 +27,23 @@ app.config.from_object(__name__)
 grafik = None
 
 def u(s):
-    return unicode(s, 'utf-8').encode('utf-8')
+    return unicode(s, 'utf-8').decode('utf-8')
+
+def get_db():
+    """ Connecting to the databese."""
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    """ Closing connection to database"""
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
 
 class GrafikIwonki(object):
     def __init__(self):
@@ -36,17 +57,39 @@ class GrafikIwonki(object):
         self.current_month = self.months[now.month-1]
         self.current_year = now.year
         self.work = [u"D", u"N", u"."]
+        self.cur = get_db().cursor()
 
+
+        self.table_names = None
+
+        self.check_database()
+
+    def check_database(self):
+        # sprawdzenie obecności właściwych tabel w db
+        # jedna tabela do team a druga do grafików
+
+        self.cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
+        self.table_names = [elem[0] for elem in self.cur.fetchall()]
+
+        if "TEAM" not in self.table_names:
+            self.cur.execute("CREATE TABLE TEAM (team_name TEXT, team TEXT)")
+        if "SCHEDULES" not in self.table_names:
+            self.cur.execute("CREATE TABLE SCHEDULES (date TEXT, team_name TEXT, schedule TEXT)")
+        # print "self.table_names", type(self.table_names), self.table_names
+
+
+# inicjalizacja strony
 @app.route('/')     # Pierwsza strona
 def index():
     global grafik
     grafik = GrafikIwonki()
     return render_template('Grafik Iwonki.html', months=grafik.months, years=grafik.years,
-                           current_month=grafik.current_month, current_year=grafik.current_year)   # przekierowanie do pliku
+                           current_month=grafik.current_month, current_year=grafik.current_year)
 
 
-@app.route('/new_schedule', methods=['POST'])
-def start_new_schedule():
+# Obsługa klawiszy w głównym oknie, inicjalizacja i edycja grafiku oraz załóg
+@app.route('/grafik_update', methods=['POST', 'GET'])
+def grafik_update():
     global grafik
     grafik = GrafikIwonki()
     selected_month = request.form['month']
@@ -54,96 +97,87 @@ def start_new_schedule():
     n = grafik.months.index(selected_month) + 1         # number of selected month
     month_data = calendar.monthrange(selected_year, n)
 
+    # print "request.form", (request.form)   # drukuje słownik z tekstami z okien
 
-    print selected_month, n, selected_year
-    print month_data
+    if request.method == 'POST':
+        if request.form["grafik_update"] == u"Stwórz nowy grafik":
+            print selected_month, n, selected_year
+            print month_data
+            return render_template('New_schedule.html', months=grafik.months, years=grafik.years,
+                                   current_month=grafik.current_month, current_year=grafik.current_year,
+                                   day_no=month_data[1], work=grafik.work)   # przekierowanie do pliku
+
+        elif request.form["grafik_update"] == u"Wprowadź dane załogi":
+            return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
+                                   months=grafik.months, years=grafik.years,)   # przekierowanie do pliku
+
+        elif request.form["grafik_update"] == u"Usuń załogę":
+            pass
+        elif request.form["grafik_update"] == u"Edycja grafiku":
+            pass
+        elif request.form["grafik_update"] == u"Usunięcie grafiku":
+            pass
+
+
+# obsługa klawiszy w oknie z grafikiem, zapisywanie i edycja
+@app.route('/schedule_update', methods=['POST', 'GET'])
+def schedule_update():
+    global grafik
+    grafik = GrafikIwonki()
+    selected_month = request.form['month']
+    selected_year = int(request.form['year'])
+    n = grafik.months.index(selected_month) + 1         # number of selected month
+    month_data = calendar.monthrange(selected_year, n)
+
+    # print "request.form", (request.form)   # drukuje słownik z tekstami z okien
+    # for elem,e in request.form:
+    #     print elem, e
+
     return render_template('New_schedule.html', months=grafik.months, years=grafik.years,
                            current_month=grafik.current_month, current_year=grafik.current_year,
                            day_no=month_data[1], work=grafik.work)   # przekierowanie do pliku
 
 
-
-
-
-@app.route('/create_team', methods=['POST'])
-def create_team():
+# obsługa klawiszy w oknie z załogą, zapisywanie i edycja
+@app.route('/update_team', methods=['POST', 'GET'])
+def team_update():
     global grafik
     if not grafik:
         grafik = GrafikIwonki()
+
+    # print "request.form", (request.form)   # drukuje słownik z tekstami z okien
+
+    person1 = request.form["person0"]
+    person2 = request.form["person1"]
+    team_name = request.form['team_name']
+    squad = [request.form["person" + str(i)] for i in range(grafik.team_size)]
+    print "person1", type(person1), person1
+    print "person2", type(person2), person2
+
+    print "squad", type(squad), squad
+    for elem in squad:
+        print "elem", type(elem), elem
+
+    team = ((request.form['team_name']),
+            ("%".join([request.form["person" + str(i)] for i in range(grafik.team_size)])))
+    print "team", type(team), team
+
+    if request.method == 'POST':
+        if request.form["create_team"] == u"dodaj osobę":
+            grafik.team_size += 1
+        elif request.form["create_team"] == u"odejmij osobę":
+            grafik.team_size -= 1
+        elif request.form["create_team"] == u"Zapisz załogę":
+
+            grafik.cur = get_db().cursor()
+            grafik.cur.executemany("INSERT INTO TEAM VALUES(?, ?)", (team,))
+
+            print "ZAPISANO TEAM W DB!!!!!!!!!!!"
+
+
+
     return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
-                           months=grafik.months, years=grafik.years,)   # przekierowanie do pliku
-
-
-@app.route('/delete_team', methods=['POST'])
-def delete_team():
-    global grafik
-    return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
-                           months=grafik.months, years=grafik.years,)   # przekierowanie do pliku
-
-
-@app.route('/plus_person', methods=['POST'])
-def plus_person():
-    global grafik
-    grafik.team_size += 1
-    return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
-                           months=grafik.months, years=grafik.years,)   # przekierowanie do pliku
-
-
-@app.route('/minus_person', methods=['POST'])
-def minus_person():
-    global grafik
-    grafik.team_size -= 1
-    if grafik.team_size == 0:
-        grafik.team_size = 1
-    return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
-                           months=grafik.months, years=grafik.years,)   # przekierowanie do pliku
-
-
-@app.route('/save_team', methods=['POST'])
-def save_team():
-    global grafik
-    if not grafik:
-        grafik = GrafikIwonki()
-    team = [request.form['team_name']]
-    try:
-        team.append(request.form['person0'])
-        team.append(request.form['person1'])
-        team.append(request.form['person2'])
-
-    except:
-        pass
-
-
-    # searchword = request.args.get('team_name', '')
-
-    # for i in range(grafik.team_size):
-    #     team.append(request.form["person" + str(i)])
-
-
-    print grafik.team_size
-    print team
-    print "team was saved"
-    return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
-                           months=grafik.months, years=grafik.years,no="xxx")
-
-
-
-
-
-# @app.route('/newgame', methods=['POST'])
-# def start_new_game():      # kasowanie dotychczasowej gry i rozpoczęśie od nowa
-#     global game
-#     game = None      # rozpoczyna grę od nowa !!!!!!
-#     return redirect(url_for('update_game_status'))  # przekierowanie
-
-
-
-
-
-
-
-
-
+                           months=grafik.months, years=grafik.years, team=team)
 
 
 
@@ -152,3 +186,4 @@ def save_team():
 
 if __name__ == '__main__':
     app.run()
+    webbrowser.open("127.0.0.1:5000")

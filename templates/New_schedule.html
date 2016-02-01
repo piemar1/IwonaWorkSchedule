@@ -4,6 +4,9 @@
 <p>Wprowadź dane dla grafiku.</p>
 <p></p>
 
+<form action="{{url_for('schedule_update')}}" method="post" id="team">
+<input type="submit" name="save_schedule" value="Zapisz Grafik">
+
 <table style="width:100%">
     <tr>
         <td>Imię Nazwisko</td>
@@ -16,7 +19,7 @@
         <td>osoba{{osoba}}</td>
         {% for day in range(day_no) %}
             <td>
-            <select name="work">
+            <select name="osoba{{osoba}}_{{day}}">
             {% for w in work %}
                 <option value="{{w}}" SELECTED>{{w}}</option>
             {% endfor %}
@@ -28,7 +31,7 @@
 </table>
 
 
-
+</form>
 
 
 

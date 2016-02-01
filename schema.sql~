@@ -1,0 +1,11 @@
+drop table if exists teams;
+create table teams (
+tem_name text not null,
+person text not null
+);
+drop table if exists schedules;
+create table schedules (
+schedule_name text not null,
+month text not null
+person_work text not null
+);
