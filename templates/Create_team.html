@@ -47,7 +47,7 @@ Tutaj wpisz nazwę dla zespołu -->
         {% for n in range(size)%}
         <tr>
             <td>{{n + 1}}</td>
-            <td><input type="text" name="person{{n}}" value="{{team[1][n]}}"></td>
+            <td><input type="text" name="person{{n}}" value="{{team[n + 1]}}"></td>
         </tr>
         {% endfor %}
     </table>

@@ -26,14 +26,17 @@ app.config.from_object(__name__)   # wprowadzanie konfiguracja aplikacji z obecn
 
 grafik = None
 
+
 def u(s):
     return unicode(s, 'utf-8').decode('utf-8')
+
 
 def get_db():
     """ Connecting to the databese."""
     db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
+        print "Connect to DB \n"
     return db
 
 
@@ -57,25 +60,58 @@ class GrafikIwonki(object):
         self.current_month = self.months[now.month-1]
         self.current_year = now.year
         self.work = [u"D", u"N", u"."]
-        self.cur = get_db().cursor()
-
 
         self.table_names = None
+        self.teams = None
+        self.con = None
+        self.cur = None
 
-        self.check_database()
+        self.database_check()
+        self.save_team_to_db((u'2016-02-01', u'2016-02-01'))
+        self.read_from_db()
 
-    def check_database(self):
-        # sprawdzenie obecności właściwych tabel w db
-        # jedna tabela do team a druga do grafików
+    def database_check(self):
+        self.con = sqlite3.connect(DATABASE)
+        with self.con:
+            self.cur = self.con.cursor()
 
-        self.cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
-        self.table_names = [elem[0] for elem in self.cur.fetchall()]
+            self.cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
+            self.table_names = [elem[0] for elem in self.cur.fetchall()]
 
-        if "TEAM" not in self.table_names:
-            self.cur.execute("CREATE TABLE TEAM (team_name TEXT, team TEXT)")
-        if "SCHEDULES" not in self.table_names:
-            self.cur.execute("CREATE TABLE SCHEDULES (date TEXT, team_name TEXT, schedule TEXT)")
-        # print "self.table_names", type(self.table_names), self.table_names
+            print "self.table_names", type(self.table_names), self.table_names
+
+            if "TEAM" not in self.table_names:
+                self.cur.execute("CREATE TABLE TEAM (team_name TEXT, team TEXT)")
+
+            if "SCHEDULES" not in self.table_names:
+                self.cur.execute("CREATE TABLE SCHEDULES (date TEXT, team_name TEXT, schedule TEXT)")
+
+            print "self.cur.fetchall() -->", self.cur.fetchall(), len(self.cur.fetchall())
+        self.con.close()
+
+    def save_team_to_db(self, team_to_save):
+
+        team_to_save = (u'2016-02-01', u'2016-02-01')
+
+        self.con = sqlite3.connect(DATABASE)
+        with self.con:
+            self.cur = self.con.cursor()
+            self.cur.executemany("INSERT INTO TEAM VALUES(?, ?)", (team_to_save,))
+            print "ZAPISANO TEAM W DB!!!!!!!!!!!"
+        self.con.close()
+
+    def read_from_db(self):
+        self.con = sqlite3.connect(DATABASE)
+        with self.con:
+            self.cur = self.con.cursor()
+
+            self.cur.execute("SELECT * FROM TEAM")
+            rows = self.cur.fetchall()
+            print len(rows)
+            for row in rows:
+                print row
+            print "powyżej powinna być baza danych"
+        self.con.close()
 
 
 # inicjalizacja strony
@@ -83,6 +119,7 @@ class GrafikIwonki(object):
 def index():
     global grafik
     grafik = GrafikIwonki()
+
     return render_template('Grafik Iwonki.html', months=grafik.months, years=grafik.years,
                            current_month=grafik.current_month, current_year=grafik.current_year)
 
@@ -105,17 +142,19 @@ def grafik_update():
             print month_data
             return render_template('New_schedule.html', months=grafik.months, years=grafik.years,
                                    current_month=grafik.current_month, current_year=grafik.current_year,
-                                   day_no=month_data[1], work=grafik.work)   # przekierowanie do pliku
-
-        elif request.form["grafik_update"] == u"Wprowadź dane załogi":
-            return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
-                                   months=grafik.months, years=grafik.years,)   # przekierowanie do pliku
-
-        elif request.form["grafik_update"] == u"Usuń załogę":
-            pass
+                                   day_no=month_data[1], work=grafik.work)
         elif request.form["grafik_update"] == u"Edycja grafiku":
             pass
         elif request.form["grafik_update"] == u"Usunięcie grafiku":
+            pass
+
+        elif request.form["grafik_update"] == u"Utwórz nową załogę":
+            return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
+                                   months=grafik.months, years=grafik.years,)
+
+        elif request.form["grafik_update"] == u"Edytuj załogę":
+            pass
+        elif request.form["grafik_update"] == u"Usuń załogę":
             pass
 
 
@@ -145,22 +184,11 @@ def team_update():
     if not grafik:
         grafik = GrafikIwonki()
 
-    # print "request.form", (request.form)   # drukuje słownik z tekstami z okien
+    team = [request.form['team_name']] + [request.form["person" + str(i)] for i in range(grafik.team_size)]
+    team_to_save = (team[0], "###".join(team[1:]))
 
-    person1 = request.form["person0"]
-    person2 = request.form["person1"]
-    team_name = request.form['team_name']
-    squad = [request.form["person" + str(i)] for i in range(grafik.team_size)]
-    print "person1", type(person1), person1
-    print "person2", type(person2), person2
-
-    print "squad", type(squad), squad
-    for elem in squad:
-        print "elem", type(elem), elem
-
-    team = ((request.form['team_name']),
-            ("%".join([request.form["person" + str(i)] for i in range(grafik.team_size)])))
-    print "team", type(team), team
+    print "team", team
+    print "team_to_save", team_to_save
 
     if request.method == 'POST':
         if request.form["create_team"] == u"dodaj osobę":
@@ -168,13 +196,7 @@ def team_update():
         elif request.form["create_team"] == u"odejmij osobę":
             grafik.team_size -= 1
         elif request.form["create_team"] == u"Zapisz załogę":
-
-            grafik.cur = get_db().cursor()
-            grafik.cur.executemany("INSERT INTO TEAM VALUES(?, ?)", (team,))
-
-            print "ZAPISANO TEAM W DB!!!!!!!!!!!"
-
-
+            grafik.save_team_to_db(team_to_save)
 
     return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
                            months=grafik.months, years=grafik.years, team=team)

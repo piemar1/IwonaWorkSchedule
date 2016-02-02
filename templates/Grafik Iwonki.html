@@ -67,9 +67,19 @@
     <div id="edit_team">
         <p>Wprowadź dane załogi,dla której tworzysz grafik.</p>
         <p> Lista istniejących już teamów do wyboru - DO ZROBIENIA</p>
-        <input type="submit" name="grafik_update" value="Wprowadź dane załogi">
-        <input type="submit" name="grafik_update" value="Usuń załogę">
 
+        <input type="submit" name="grafik_update" value="Utwórz nową załogę">
+<!--
+        <p><select name="edit_team">
+           {% for team in teams%}
+            <option value="{{team}}">{{team}}</option>
+           {% endfor %}
+        </select></p>
+        -->
+        <p>
+        <input type="submit" name="grafik_update" value="Edytuj załogę">
+        <input type="submit" name="grafik_update" value="Usuń załogę">
+        </p>
         <p>Należy dodac okno potwierdzające czy</p>
         <p>użytkownik chce usunąć team - DO ZROBIENIA</p>
     </div>
