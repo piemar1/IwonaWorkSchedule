@@ -62,56 +62,82 @@ class GrafikIwonki(object):
         self.work = [u"D", u"N", u"."]
 
         self.table_names = None
-        self.teams = None
-        self.con = None
+        self.team_names = None
+        self.conn = None
         self.cur = None
 
         self.database_check()
-        self.save_team_to_db((u'2016-02-01', u'2016-02-01'))
-        self.read_from_db()
+        self.read_team_names_db()
 
     def database_check(self):
-        self.con = sqlite3.connect(DATABASE)
-        with self.con:
-            self.cur = self.con.cursor()
 
-            self.cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
-            self.table_names = [elem[0] for elem in self.cur.fetchall()]
+        self.conn = sqlite3.connect(DATABASE)
+        self.cur = self.conn.cursor()
 
-            print "self.table_names", type(self.table_names), self.table_names
+        self.cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
+        self.table_names = [elem[0] for elem in self.cur.fetchall()]
 
-            if "TEAM" not in self.table_names:
-                self.cur.execute("CREATE TABLE TEAM (team_name TEXT, team TEXT)")
+        print "self.table_names-1", type(self.table_names), self.table_names
 
-            if "SCHEDULES" not in self.table_names:
-                self.cur.execute("CREATE TABLE SCHEDULES (date TEXT, team_name TEXT, schedule TEXT)")
+        if "TEAM" not in self.table_names:
+            self.conn.execute("CREATE TABLE TEAM (team_name TEXT, team TEXT)")
+        if "SCHEDULES" not in self.table_names:
+            self.conn.execute("CREATE TABLE SCHEDULES (date TEXT, team_name TEXT, schedule TEXT)")
 
-            print "self.cur.fetchall() -->", self.cur.fetchall(), len(self.cur.fetchall())
-        self.con.close()
+        print "self.table_names-2", type(self.table_names), self.table_names
+        self.conn.close()
 
     def save_team_to_db(self, team_to_save):
-
-        team_to_save = (u'2016-02-01', u'2016-02-01')
 
         self.con = sqlite3.connect(DATABASE)
         with self.con:
             self.cur = self.con.cursor()
             self.cur.executemany("INSERT INTO TEAM VALUES(?, ?)", (team_to_save,))
             print "ZAPISANO TEAM W DB!!!!!!!!!!!"
-        self.con.close()
+        self.conn.close()
 
-    def read_from_db(self):
-        self.con = sqlite3.connect(DATABASE)
-        with self.con:
-            self.cur = self.con.cursor()
+    def read_team_names_db(self):
 
-            self.cur.execute("SELECT * FROM TEAM")
-            rows = self.cur.fetchall()
-            print len(rows)
-            for row in rows:
-                print row
-            print "powyżej powinna być baza danych"
-        self.con.close()
+        self.conn = sqlite3.connect(DATABASE)
+        self.cur = self.conn.cursor()
+
+        self.cur.execute("SELECT * FROM TEAM")
+        rows = self.cur.fetchall()
+        print len(rows)
+
+        self.team_names = [row[0] for row in rows]
+        print "self.team_names"
+        for team in self.team_names:
+            print "team", team
+
+
+        print "powyżej powinna być baza danych"
+        self.conn.close()
+
+    def delete_team(self, team_name_to_delete):
+
+        self.conn = sqlite3.connect(DATABASE)
+        self.cur = self.conn.cursor()
+
+        self.cur.execute("DELETE from TEAM where team_name = '%s';" % team_name_to_delete)
+
+        self.conn.commit()
+        print "Total number of rows deleted :", self.conn.total_changes
+        self.conn.close()
+
+    def read_one_team_db(self, team_to_edit):
+        self.conn = sqlite3.connect(DATABASE)
+        self.cur = self.conn.cursor()
+
+        self.cur.execute("SELECT * FROM TEAM")
+
+        rows = self.cur.fetchall()
+
+        for row in rows:
+            if row[0] == team_to_edit:
+                self.team_to_edit = row
+        self.conn.close()
+        print "self.team_to_edit", self.team_to_edit
 
 
 # inicjalizacja strony
@@ -121,7 +147,8 @@ def index():
     grafik = GrafikIwonki()
 
     return render_template('Grafik Iwonki.html', months=grafik.months, years=grafik.years,
-                           current_month=grafik.current_month, current_year=grafik.current_year)
+                           current_month=grafik.current_month, current_year=grafik.current_year,
+                           team_names=grafik.team_names)
 
 
 # Obsługa klawiszy w głównym oknie, inicjalizacja i edycja grafiku oraz załóg
@@ -143,6 +170,7 @@ def grafik_update():
             return render_template('New_schedule.html', months=grafik.months, years=grafik.years,
                                    current_month=grafik.current_month, current_year=grafik.current_year,
                                    day_no=month_data[1], work=grafik.work)
+
         elif request.form["grafik_update"] == u"Edycja grafiku":
             pass
         elif request.form["grafik_update"] == u"Usunięcie grafiku":
@@ -153,9 +181,30 @@ def grafik_update():
                                    months=grafik.months, years=grafik.years,)
 
         elif request.form["grafik_update"] == u"Edytuj załogę":
-            pass
+            team_to_edit = request.form["edit_team"]
+            grafik.read_one_team_db(team_to_edit)
+
+            # self.team_to_edit
+            team = [grafik.team_to_edit[0]]
+            for elem in grafik.team_to_edit[1].split("###"):
+                team.append(elem)
+
+            print "len(team)", len(team)
+
+            return render_template('Create_team.html', size=len(team), today=grafik.today,
+                           months=grafik.months, years=grafik.years, team=team,
+                           team_names=grafik.team_names)
+
+
         elif request.form["grafik_update"] == u"Usuń załogę":
-            pass
+            team_to_delate = request.form["edit_team"]
+            print "team_to_delate --> ", team_to_delate
+            grafik.delete_team(team_to_delate)
+            grafik.read_team_names_db()
+
+            return render_template('Grafik Iwonki.html', months=grafik.months, years=grafik.years,
+                                   current_month=grafik.current_month, current_year=grafik.current_year,
+                                   team_names=grafik.team_names)
 
 
 # obsługa klawiszy w oknie z grafikiem, zapisywanie i edycja
@@ -184,7 +233,8 @@ def team_update():
     if not grafik:
         grafik = GrafikIwonki()
 
-    team = [request.form['team_name']] + [request.form["person" + str(i)] for i in range(grafik.team_size)]
+    team = [request.form['team_name']] + [request.form["person" + str(i)] for i in range(grafik.team_size)
+                                          if request.form["person" + str(i)]]
     team_to_save = (team[0], "###".join(team[1:]))
 
     print "team", team
@@ -196,10 +246,14 @@ def team_update():
         elif request.form["create_team"] == u"odejmij osobę":
             grafik.team_size -= 1
         elif request.form["create_team"] == u"Zapisz załogę":
-            grafik.save_team_to_db(team_to_save)
 
-    return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
-                           months=grafik.months, years=grafik.years, team=team)
+            # grafik.delete_team(team_to_save)
+            grafik.save_team_to_db(team_to_save)
+            grafik.read_team_names_db()
+
+    return render_template('Create_team.html', size=len(team), today=grafik.today,
+                           months=grafik.months, years=grafik.years, team=team,
+                           team_names=grafik.team_names)
 
 
 

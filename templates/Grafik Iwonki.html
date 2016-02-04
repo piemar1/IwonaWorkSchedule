@@ -19,17 +19,17 @@
     padding:5px;
     }
     #new_schedule {
-    background-color:#eeeeee;
+    background-color:#aeeee1;
     float:left;
     padding:5px
     }
     #edit_team {
-    background-color:#eeeeee;
+    background-color:#eaeee5;
     float:left;
     padding:5px
     }
     #edit_schedules {
-    background-color:#eeeeee;
+    background-color:#eeaee9;
     float:left;
     padding:5px
     }
@@ -69,13 +69,13 @@
         <p> Lista istniejących już teamów do wyboru - DO ZROBIENIA</p>
 
         <input type="submit" name="grafik_update" value="Utwórz nową załogę">
-<!--
+
         <p><select name="edit_team">
-           {% for team in teams%}
-            <option value="{{team}}">{{team}}</option>
+           {% for team_name in team_names %}
+            <option value="{{team_name}}">{{team_name}}</option>
            {% endfor %}
-        </select></p>
-        -->
+        </select><--Wybierz załogę, którą chcesz edytować albo usunąć.</p>
+
         <p>
         <input type="submit" name="grafik_update" value="Edytuj załogę">
         <input type="submit" name="grafik_update" value="Usuń załogę">
@@ -86,7 +86,8 @@
 
     <div id="edit_schedules">
         <p>Edycja istniejącego grafiku.</p>
-        <p>Lista istniejących już gafików do wyboru - DO ZROBIENIA</p>
+        <p>Lista istniejących już gafików do wyboru</p>
+        <p>DO ZROBIENIA</p>
         <input type="submit" name="grafik_update" value="Edycja grafiku">
         <input type="submit" name="grafik_update" value="Usunięcie grafiku">
         <p>Należy dodac okno potwierdzające czy użytkownik </p>
