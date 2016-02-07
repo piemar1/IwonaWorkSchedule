@@ -47,7 +47,7 @@
     <form action="{{url_for('grafik_update')}}" method="post">
 
     <div id="new_schedule">
-            <p>Tworzenie nowegografiku pracy.</p>
+            <p>Tworzenie nowego grafiku pracy.</p>
 
             <select name="month">
             {% for month in months %}
@@ -65,9 +65,7 @@
     </div>
 
     <div id="edit_team">
-        <p>Wprowadź dane załogi,dla której tworzysz grafik.</p>
-        <p> Lista istniejących już teamów do wyboru - DO ZROBIENIA</p>
-
+        <p>Tworzenie lub edycja składu załogi.</p>
         <input type="submit" name="grafik_update" value="Utwórz nową załogę">
 
         <p><select name="edit_team">
