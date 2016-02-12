@@ -1,0 +1,39 @@
+body {
+    background-color: light-grey;
+}
+
+#header {
+    background-color:black;
+    color:white;
+    text-align:center;
+    padding:5px;
+    }
+#flash {
+    color:green;
+    text-align:center;
+    padding:5px;
+    }
+#main {
+    background-color:#eeeeee;
+    }
+#footer {
+    background-color:black;
+    color:white;
+    text-align:center;
+    padding:5px;
+    }
+#new_schedule {
+    background-color:#aeeee1;
+    float:left;
+    padding:5px
+    }
+#edit_team {
+    background-color:#eaeee5;
+    float:left;
+    padding:5px
+    }
+#edit_schedules {
+    background-color:#eeaee9;
+    float:left;
+    padding:5px
+    }

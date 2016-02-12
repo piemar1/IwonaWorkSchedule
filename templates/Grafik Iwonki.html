@@ -1,99 +1,79 @@
 <!doctype html>
 <html lang="pl">
 <head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename = 'style.css') }}">
     <meta charset="utf-8">
-    <style>
-    #header {
-    background-color:black;
-    color:white;
-    text-align:center;
-    padding:5px;
-    }
-    # main {
-    background-color:#eeeeee;
-    }
-    #footer {
-    background-color:black;
-    color:white;
-    text-align:center;
-    padding:5px;
-    }
-    #new_schedule {
-    background-color:#aeeee1;
-    float:left;
-    padding:5px
-    }
-    #edit_team {
-    background-color:#eaeee5;
-    float:left;
-    padding:5px
-    }
-    #edit_schedules {
-    background-color:#eeaee9;
-    float:left;
-    padding:5px
-    }
-
-    </style>
     <title>Grafik Iwonki</title>
 </head>
 
 <body>
     <div id="main">
-    <div id="header">
-        <h1>Grafik Iwonki</h1>
-    </div>
+		<div id="header">
+			<h1>Grafik Iwonki</h1>
+		</div>
 
-    <form action="{{url_for('grafik_update')}}" method="post">
+        <form action="{{url_for('grafik_update')}}" method="post">
 
-    <div id="new_schedule">
-            <p>Tworzenie nowego grafiku pracy.</p>
+		<div id="new_schedule">
+				<p>Tworzenie nowego grafiku pracy.</p>
 
-            <select name="month">
-            {% for month in months %}
-                <option value="{{month}}">{{month}}</option>
+				<select name="month">
+				{% for month in months %}
+					<option value="{{month}}">{{month}}</option>
+				{% endfor %}
+				</select>
+
+				<select name="year">
+				{% for year in years %}
+					<option value="{{year}}">{{year}}</option>
+				{% endfor %}
+				</select>
+				<p><input type="submit" name="grafik_update" value="Stwórz nowy grafik"></p>
+		</div>
+
+		<div id="edit_team">
+			<p>Tworzenie lub edycja składu załogi.</p>
+			<input type="submit" name="grafik_update" value="Utwórz nową załogę">
+
+			<p><select name="edit_team">
+			   {% for team_name in team_names %}
+				<option value="{{team_name}}">{{team_name}}</option>
+			   {% endfor %}
+			</select><--Wybierz załogę, którą chcesz edytować albo usunąć.</p>
+
+			<p>
+			<input type="submit" name="grafik_update" value="Edytuj załogę">
+			<input type="submit" name="grafik_update" value="Usuń załogę">
+			</p>
+			<p>Należy dodac okno potwierdzające czy</p>
+			<p>użytkownik chce usunąć team - DO ZROBIENIA</p>
+		</div>
+
+		<div id="edit_schedules">
+			<p>Edycja istniejącego grafiku.</p>
+			<p>Lista istniejących już gafików do wyboru</p>
+			<p>DO ZROBIENIA</p>
+			<input type="submit" name="grafik_update" value="Edycja grafiku">
+			<input type="submit" name="grafik_update" value="Usunięcie grafiku">
+			<p>Należy dodac okno potwierdzające czy użytkownik </p>
+			<p>chce usunąć grafik - DO ZROBIENIA</p>
+		</div>
+        </form>
+	</div><p></p>
+###################################################
+    <div id="flash">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <li>{{ message }}</li>
             {% endfor %}
-            </select>
-
-            <select name="year">
-            {% for year in years %}
-                <option value="{{year}}">{{year}}</option>
-            {% endfor %}
-            </select>
-
-            <p><input type="submit" name="grafik_update" value="Stwórz nowy grafik"></p>
+        </ul>
+        {% endif %}
+    {% endwith %}
     </div>
+###################################################
 
-    <div id="edit_team">
-        <p>Tworzenie lub edycja składu załogi.</p>
-        <input type="submit" name="grafik_update" value="Utwórz nową załogę">
-
-        <p><select name="edit_team">
-           {% for team_name in team_names %}
-            <option value="{{team_name}}">{{team_name}}</option>
-           {% endfor %}
-        </select><--Wybierz załogę, którą chcesz edytować albo usunąć.</p>
-
-        <p>
-        <input type="submit" name="grafik_update" value="Edytuj załogę">
-        <input type="submit" name="grafik_update" value="Usuń załogę">
-        </p>
-        <p>Należy dodac okno potwierdzające czy</p>
-        <p>użytkownik chce usunąć team - DO ZROBIENIA</p>
-    </div>
-
-    <div id="edit_schedules">
-        <p>Edycja istniejącego grafiku.</p>
-        <p>Lista istniejących już gafików do wyboru</p>
-        <p>DO ZROBIENIA</p>
-        <input type="submit" name="grafik_update" value="Edycja grafiku">
-        <input type="submit" name="grafik_update" value="Usunięcie grafiku">
-        <p>Należy dodac okno potwierdzające czy użytkownik </p>
-        <p>chce usunąć grafik - DO ZROBIENIA</p>
-    </div>
-    </form>
-    </div>
-#########################################################################################
 {% block body %} {% endblock %}
 
 <div id="footer">

@@ -51,7 +51,7 @@ class GrafikIwonki(SqliteDb, object):
 def index():
     global grafik
     grafik = GrafikIwonki()
-
+    flash(u"Witam w aplikacji do układania grafików pracy.")
     return render_template('Grafik Iwonki.html', months=grafik.months, years=grafik.years,
                            current_month=grafik.current_month, current_year=grafik.current_year,
                            team_names=grafik.team_names)
@@ -71,8 +71,10 @@ def grafik_update():
 
     if request.method == 'POST':
         if request.form["grafik_update"] == u"Stwórz nowy grafik":     # Create new schedule
+
             print selected_month, n, selected_year
             print month_data
+            flash(u"Otworzono okno służące do tworzenia nowego grafiku pracy - do dzieła!")
             return render_template('New_schedule.html', months=grafik.months, years=grafik.years,
                                    current_month=grafik.current_month, current_year=grafik.current_year,
                                    day_no=month_data[1], work=grafik.work, team_names=grafik.team_names)
@@ -83,6 +85,8 @@ def grafik_update():
             pass
 
         elif request.form["grafik_update"] == u"Utwórz nową załogę":     # Create new team
+
+            flash(u"Otworzono okno służące do wprowadzenia nowej drużyny do rejestru aplikacji.")
             return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
                                    team_names=grafik.team_names, months=grafik.months, years=grafik.years)
 
@@ -95,22 +99,24 @@ def grafik_update():
             grafik.team_size = len(team)-1
 
             print "len(team)", len(team)
-
+            flash(u"Otworzono okno służące do edycji załogi '{}'.".format(grafik.team_to_edit[0]))
             return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
                                    months=grafik.months, years=grafik.years, team=team, team_names=grafik.team_names)
 
         elif request.form["grafik_update"] == u"Usuń załogę":             # Delete /existed team
             team_to_delate = request.form["edit_team"]
+            #
+            # Tutaj trzeba koniecznie wprowadzic okno z potwierdzeniem
+            # czy na pewno użytkownik chce usunąć daną załogę
+            #
             print "team_to_delate --> ", team_to_delate
             grafik.delete_team(team_to_delate)
             grafik.read_team_names_db()
 
+            flash(u"Uwaga! Załoga '{}' została usunięta z rejestru aplikacji.".format(team_to_delate))
             return render_template('Grafik Iwonki.html', months=grafik.months, years=grafik.years,
                                    current_month=grafik.current_month, current_year=grafik.current_year,
                                    team_names=grafik.team_names)
-
-
-
 
 
 # obsługa klawiszy w oknie z załogą, zapisywanie i edycja
@@ -131,8 +137,12 @@ def team_update():
     if request.method == 'POST':
         if request.form["create_team"] == u"dodaj osobę":
             grafik.team_size += 1
+            flash(u"Do załogi '{}' dodano nową osobę.".format(team[0]))
+
         elif request.form["create_team"] == u"odejmij osobę":
             grafik.team_size -= 1
+            flash(u"Załogę '{}' zmniejszono o jedną osobę.".format(team[0]))
+
         elif request.form["create_team"] == u"Zapisz załogę":
 
             if team_to_save[0] in grafik.team_names:
@@ -140,6 +150,8 @@ def team_update():
 
             grafik.save_team_to_db(team_to_save)
             grafik.read_team_names_db()
+            flash(u"Załoga '{}' została dodana do rejestru. "
+                  u"Można teraz przystąpić do układania grafiku pracy.".format(team[0]))
 
     return render_template('Create_team.html', size=grafik.team_size, today=grafik.today,
                            months=grafik.months, years=grafik.years, team=team,
