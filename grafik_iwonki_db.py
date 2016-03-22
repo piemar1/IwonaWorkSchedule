@@ -23,6 +23,10 @@ DATABASE = "database.db"
 
 class SqliteDb(object):
 
+    def __init__(self):
+        self.conn = None
+        self.cur = None
+
     def database_check(self):
 
         self.conn = sqlite3.connect(DATABASE)
@@ -31,12 +35,12 @@ class SqliteDb(object):
         self.cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';")
         self.table_names = [elem[0] for elem in self.cur.fetchall()]
 
-        print "self.table_names-1", type(self.table_names), self.table_names
+        # print "self.table_names-1", type(self.table_names), self.table_names
 
         if "TEAM" not in self.table_names:
             self.conn.execute("CREATE TABLE TEAM (team_name TEXT, team TEXT)")
         if "SCHEDULES" not in self.table_names:
-            self.conn.execute("CREATE TABLE SCHEDULES (date TEXT, team_name TEXT, schedule TEXT)")
+            self.conn.execute("CREATE TABLE SCHEDULES (schedule_name TEXT, year TEXT, month TEXT, schedule TEXT)")
 
         print "self.table_names-2", type(self.table_names), self.table_names
         self.conn.close()
@@ -47,7 +51,7 @@ class SqliteDb(object):
         with self.con:
             self.cur = self.con.cursor()
             self.cur.executemany("INSERT INTO TEAM VALUES(?, ?)", (team_to_save,))
-            print "ZAPISANO TEAM W DB!!!!!!!!!!!"
+            # print "ZAPISANO TEAM W DB!!!!!!!!!!!"
         self.conn.close()
 
     def read_team_names_db(self):
@@ -59,16 +63,16 @@ class SqliteDb(object):
         rows = self.cur.fetchall()
         self.team_names = [row[0] for row in rows]
 
-        print len(rows)
-
-        print "self.team_names"
-        for team in self.team_names:
-            print "team", team
-
-        print "powyżej powinna być baza danych"
+        # print len(rows)
+        #
+        # print "self.team_names"
+        # for team in self.team_names:
+        #     print "team", team
+        #
+        # print "powyżej powinna być baza danych"
         self.conn.close()
 
-    def delete_team(self, team_name_to_delete):
+    def delete_team_db(self, team_name_to_delete):
 
         self.conn = sqlite3.connect(DATABASE)
         self.cur = self.conn.cursor()
@@ -76,10 +80,11 @@ class SqliteDb(object):
         self.cur.execute("DELETE from TEAM where team_name = '%s';" % team_name_to_delete)
 
         self.conn.commit()
-        print "Total number of rows deleted :", self.conn.total_changes
+        # print "Total number of rows deleted :", self.conn.total_changes
         self.conn.close()
 
     def read_one_team_db(self, team_to_edit):
+
         self.conn = sqlite3.connect(DATABASE)
         self.cur = self.conn.cursor()
 
@@ -91,4 +96,59 @@ class SqliteDb(object):
             if row[0] == team_to_edit:
                 self.team_to_edit = row
         self.conn.close()
-        print "self.team_to_edit", self.team_to_edit
+        # print "self.team_to_edit", self.team_to_edit
+
+##################################################3
+    def save_schedule_to_db(self, schedule_to_save):
+
+        self.con = sqlite3.connect(DATABASE)
+        with self.con:
+            self.cur = self.con.cursor()
+            self.cur.executemany("INSERT INTO SCHEDULES VALUES(?, ?)", (schedule_to_save,))
+            # print "ZAPISANO TEAM W DB!!!!!!!!!!!"
+        self.conn.close()
+
+    def read_schedule_names_db(self):
+
+        self.conn = sqlite3.connect(DATABASE)
+        self.cur = self.conn.cursor()
+
+        self.cur.execute("SELECT * FROM SCHEDULES")
+        rows = self.cur.fetchall()
+        self.schedule_names = [row[0] for row in rows]
+
+        # print len(rows)
+        #
+        # print "self.team_names"
+        # for team in self.team_names:
+        #     print "team", team
+        #
+        # print "powyżej powinna być baza danych"
+        self.conn.close()
+
+    def delete_schedule_db(self, schedule_name_to_delete):
+
+        self.conn = sqlite3.connect(DATABASE)
+        self.cur = self.conn.cursor()
+
+        self.cur.execute("DELETE from SCHEDULES where team_name = '%s';" % schedule_name_to_delete)
+
+        self.conn.commit()
+        # print "Total number of rows deleted :", self.conn.total_changes
+        self.conn.close()
+
+    def read_one_schedule_db(self, schedule_to_edit):
+
+        self.conn = sqlite3.connect(DATABASE)
+        self.cur = self.conn.cursor()
+
+        self.cur.execute("SELECT * FROM SCHEDULES")
+
+        rows = self.cur.fetchall()
+
+        for row in rows:
+            if row[0] == team_to_edit:
+                self.schedule_to_edit = row
+        self.conn.close()
+        # print "self.team_to_edit", self.team_to_edit
+

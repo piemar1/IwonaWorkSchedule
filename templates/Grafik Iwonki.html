@@ -15,7 +15,9 @@
         <form action="{{url_for('grafik_update')}}" method="post">
 
 		<div id="new_schedule">
-				<p>Tworzenie nowego grafiku pracy.</p>
+				<p><b>Tworzenie nowego grafiku pracy.</b></p>
+				<p>Wybierz miesiąc, rok oraz drużynę </p>
+			    <p>dla której chcesz ułożyć nowy grafik.</p>
 
 				<select name="month">
 				{% for month in months %}
@@ -28,11 +30,17 @@
 					<option value="{{year}}">{{year}}</option>
 				{% endfor %}
 				</select>
+			    <select name="team_for_new_schedule">
+			        {% for team_name in team_names %}
+				    <option value="{{team_name}}">{{team_name}}</option>
+			        {% endfor %}
+			    </select>
+
 				<p><input type="submit" name="grafik_update" value="Stwórz nowy grafik"></p>
 		</div>
 
 		<div id="edit_team">
-			<p>Tworzenie lub edycja składu załogi.</p>
+			<p><b>Tworzenie lub edycja składu załogi.</b></p>
 			<input type="submit" name="grafik_update" value="Utwórz nową załogę">
 
 			<p><select name="edit_team">
@@ -50,7 +58,7 @@
 		</div>
 
 		<div id="edit_schedules">
-			<p>Edycja istniejącego grafiku.</p>
+			<p><b>Edycja istniejącego grafiku.</b></p>
 			<p>Lista istniejących już gafików do wyboru</p>
 			<p>DO ZROBIENIA</p>
 			<input type="submit" name="grafik_update" value="Edycja grafiku">
@@ -60,7 +68,7 @@
 		</div>
         </form>
 	</div><p></p>
-###################################################
+######################################################################################################
     <div id="flash">
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -72,7 +80,7 @@
         {% endif %}
     {% endwith %}
     </div>
-###################################################
+######################################################################################################
 
 {% block body %} {% endblock %}
 

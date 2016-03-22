@@ -41,10 +41,42 @@ C
 - eksport grafiku do excel
 
 
+class Team
+init
+- data utwirzenia 
+- skład
+
+metody
+- zapis do bazy danych
+
+
+class Schedule
+init
+- data utworzenia instancji
+- miesiąc obejmujący grafik
+- rok obejmujący grafik
+- team
+- schedule for persons
+metoda
+- zapis do bazy danych
+
+
+class Program
+init
+- data base
 
 
 
+metody
+- tworzenie teamów
+- odczytywanie teamów
+- edycja teamów
 
+- tworzenie grafików
+- odczytywanie grafików
+- edycja grafików
+
+- obsługa dat
 
 
 
