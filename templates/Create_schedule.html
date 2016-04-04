@@ -1,0 +1,72 @@
+{% extends "Grafik Iwonki.html" %}
+{% block body %}
+
+<p>Czs przystąpić do ukłądania grafiku dla załogi
+    <b>{{team.team_name}}</b> dla miesiąca <b>{{selected_month}} {{selected_year}}</b>. </p>
+<p></p>
+
+<form action="{{url_for('schedule_update')}}" method="post">
+
+    <p>Liczba osób na dyżurze -->
+    <select name="no_of_person">
+        {% for elem in range(1, 10) %}
+        <option value="{{elem}}" SELECTED>{{elem}}</option>
+        {% endfor %}
+    </select></p>
+
+    <p>Liczba godzin pracay w miesiącu na jedną osobę -->
+    <select name="no_of_hours">
+        {% for elem in no_of_hours %}
+        <option value="{{elem}}" SELECTED>{{elem}}</option>
+        {% endfor %}
+    </select></p>
+    <p>Liczba możliwych dyżurów (dniówka lub nocka) pod rząd -->
+    <select name="no_of_daywork">
+        {% for elem in range(2,5) %}
+        <option value="{{elem}}" SELECTED>{{elem}}</option>
+        {% endfor %}
+    </select></p>
+
+
+    <input type="submit" name="save_schedule" value="Zapisz Grafik">
+
+    <table style="width:100%">
+        <tr>
+            <td></td>
+            {% for no, day in month_calendar %}
+            <td><b>{{no}}</b></td>
+            {% endfor %}
+        </tr>
+
+        <tr>
+            <td><b>Imię Nazwisko</b></td>
+            {% for no, day in month_calendar  %}
+            <td><b>{{day}}</b></td>
+            {% endfor %}
+        </tr>
+        {% for person in team.crew %}
+        <tr>
+
+            {{loop.index}}    To trzeba zmienić
+
+
+            <td><{{person}}</td>
+            {% for no, day in month_calendar %}
+                <td>
+                    <select name="{{person}}_day{{no}}">
+                    {% for w in work %}
+                        <option value="{{w}}" SELECTED>{{w}}</option>
+                    {% endfor %}
+                </select>
+                </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+
+
+
+</form>
+
+{% endblock %}

@@ -2,14 +2,6 @@
 {% block body %}
 
 
-
-
-<p id="demo">JavaScript can change the style of an HTML element.</p>
-
-dzisiejsza data {{today}}
-
-
-
 <p>Wprowadź dane osób z zespołu.</p>
 
 <form action="{{url_for('team_update')}}" method="post" id="team">
@@ -19,7 +11,7 @@ dzisiejsza data {{today}}
 <p></p>
 Tutaj wpisz nazwę dla zespołu -->
 
-<input type="text" name="team_name" value="{{today}}">
+<input type="text" name="team_name" value="{{team_name}}">
 
 <input type="submit" name="create_team" value="Zapisz załogę">
 <p></p>
@@ -32,39 +24,6 @@ Tutaj wpisz nazwę dla zespołu -->
 <p></p>
 
 
-<script>
-
-function myFunction() {
-    var x = document.getElementById("demo");
-    x.style.fontSize = "25px";
-    x.style.color = "red";
-}
-function myFunction2() {
-    var x = document.getElementById("demo");
-    x.style.fontSize = "45px";
-    x.style.color = "red";
-}
-function zmiana(str) {
-    str += 1
-    alert(str)
-    return str
-}
-
-function plus_person() {
-    var size = {{size}};
-    size += 1
-    document.getElementById("demo2").innerHTML = size;
-}
-
-
-</script>
-
-
-<p id="demo2"></p>
-
-
-zmienna size wynosi obecnie {{size}} !!!!!!
-
 
 <table style="width:100%">
     <tr>
@@ -74,7 +33,7 @@ zmienna size wynosi obecnie {{size}} !!!!!!
     {% for n in range(size)%}
     <tr>
         <td>{{n + 1}}</td>
-        <td><input type="text" name="person{{n}}" value=""></td>
+        <td><input type="text" name="person{{n}}" value="{{crew[n]}}"></td>
     </tr>
     {% endfor %}
 </table>

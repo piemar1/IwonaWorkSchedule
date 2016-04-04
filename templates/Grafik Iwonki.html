@@ -21,13 +21,23 @@
 
 				<select name="month">
 				{% for month in months %}
+					{% if month == current_month %}
+					<option value="{{month}}"SELECTED>{{month}}</option>
+					{% endif %}
+					{% if month != current_month %}
 					<option value="{{month}}">{{month}}</option>
+					{% endif %}
 				{% endfor %}
 				</select>
 
 				<select name="year">
 				{% for year in years %}
+					{% if month == current_year %}
+					<option value="{{year}}"SELECTED>{{year}}</option>
+					{% endif %}
+					{% if month != current_year %}
 					<option value="{{year}}">{{year}}</option>
+					{% endif %}
 				{% endfor %}
 				</select>
 			    <select name="team_for_new_schedule">
