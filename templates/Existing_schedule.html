@@ -1,17 +1,14 @@
 {% extends "Grafik Iwonki.html" %}
 {% block body %}
 
-<p>Czas przystąpić do ukłądania grafiku dla załogi
-    <b>{{team.team_name}}</b> dla miesiąca <b>{{selected_month}} {{selected_year}}</b>. </p>
+<p>Okno umożliwoające edycje grafiku pracy - <b>{{schedule.schedule_name}}</b>
+    dla miesiąca <b>{{schedule.month}} {{schedule.year}}</b>.</p>
 <p></p>
 
 <form action="{{url_for('schedule_update')}}" method="post">
 
-
-    <p> Wprowadź nazwę dla Grafiki.
-    <p>Domyślnie będzie ona zawierała dzisiejszą datę ale wprowadź coś od siebie.
     <p></p>
-    <p><input type="text" name="schedule_name" value="{{today}} wprowadź nazwę..."></p>
+    <p><input type="text" name="schedule_name" value="{{schedule.schedule_name}}"></p>
 
     <p>Liczba osób na dyżurze -->
     <select name="no_of_person">
@@ -50,16 +47,24 @@
             <td><b>{{day}}</b></td>
             {% endfor %}
         </tr>
-        {% for person in team.crew %}
+        {% for person, person_schedule in person_schedules %}
         <tr>
             <td>{{person}}</td>
 
-            {% for no, day in month_calendar %}
+            {% for day_no, day in month_calendar %}
             <td>
                 <select name="{{person}}_day{{no}}">
+
                     {% for w in work %}
+                        {% if person_schedule[day_no-1] == w %}
                         <option value="{{w}}" SELECTED>{{w}}</option>
+                        {% endif %}
+
+                        {% if person_schedule[day_no-1] != w %}
+                        <option value="{{w}}">{{w}}</option>
+                        {% endif %}
                     {% endfor %}
+
                 </select>
             </td>
             {% endfor %}

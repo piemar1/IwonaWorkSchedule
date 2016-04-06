@@ -99,8 +99,8 @@ def save_schedule_to_db(schedule):
     Zapisuje schedule do bazy, jako arg przyjmuję gotową instancję Schedule
     Jeżeli dany wpis w db już istnieje, usuwa poprzedni wpis i tworzy nowy.
     """
-    schedule.crew = ",".join(schedule.crew)
-    schedule.schedule = ",".join(schedule.schedule)
+    schedule.crew_str = ",".join(schedule.crew)
+    schedule.schedule_str = ",".join(schedule.schedule)
 
     sqlScript = '''INSERT INTO
                    Schedules (schedule_name, creation_date, month, year, crew, schedule)
@@ -108,8 +108,8 @@ def save_schedule_to_db(schedule):
                                                                          schedule.creation_date,
                                                                          schedule.month,
                                                                          schedule.year,
-                                                                         schedule.crew,
-                                                                         schedule.schedule)
+                                                                         schedule.crew_str,
+                                                                         schedule.schedule_str)
 
     if schedule.schedule_name in get_schedule_names_from_db():
         delete_schedule_in_db(schedule.schedule_name)
@@ -189,8 +189,7 @@ if __name__ == "__main__":
     print(get_schedule_names_from_db())
 
     # print(get_team_from_db("drużynaA"))
-    # print(get_schedule_from_db("scheduleA"))
-
+    print(get_schedule_from_db(" wprowadź nazwę..."))
 
 
 

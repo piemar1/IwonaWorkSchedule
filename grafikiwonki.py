@@ -31,6 +31,9 @@ NOW = datetime.datetime.now()
 CURRENT_MONTH = MONTHS[NOW.month-1]
 CURRENT_YEAR = NOW.year
 
+no_of_hours = (x*10 for x in range(15, 22))
+
+
 DEBUG = True  # configuration
 SECRET_KEY = 'l55Vsm2ZJ5q1U518PlxfM5IE2T42oULB'
 
@@ -79,7 +82,7 @@ def read_current_schedule(crew):
         for no, day in month_calendar:
             one_day = request.form[person + '_day' + str(no)]
             person_schedule.append(one_day)
-        schedule.append(person_schedule)
+        schedule.append("".join(person_schedule))
     print("crew", crew)
     print("schedule", schedule)
     schedule = Schedule(schedule_name, TODAY, selected_month, selected_year, crew, schedule)
@@ -177,8 +180,6 @@ def grafik_update():
             month_calendar = get_month_calendar(selected_year, selected_month)
             team = get_team_from_db(team_name_for_new_schedule)
 
-            no_of_hours = (x*10 for x in range(15, 22))
-
             session["selected_month"] = selected_month
             session["selected_year"] = selected_year
             session["team_crew"] = team.crew
@@ -193,11 +194,10 @@ def grafik_update():
                                    selected_year  = selected_year,
                                    month_calendar = month_calendar, # plan miesiąca
                                    work           = WORK,
+                                   today          = TODAY,
                                    team_names     = get_team_names_from_db(),
                                    no_of_hours    = no_of_hours,
                                    team           = team)
-
-
 
             pass
         elif request.form["grafik_update"] == u"Edycja grafiku":     # Edit existed schedule
@@ -246,28 +246,36 @@ def schedule_update():
         # odczytanie wprowadzonych danych dla schedule i zrobienie z tego instancji
         crew = session["team_crew"]
         schedule = read_current_schedule(crew)
-        print (schedule)
+
+        month_calendar = get_month_calendar(schedule.year, schedule.month)
 
 
         if request.form["save_schedule"] == u"Zapisz Grafik":     # Create new schedule
 
-            flash(u"Uwaga! Próba zapisania grafiku.")
+            save_schedule_to_db(schedule)
+            flash(u"Dokonano zapisu grafiku pracy {} w bazie danyc.".format(schedule.schedule_name))
+
+            print("schedule.crew", schedule.crew)
+            print("schedule.schedule", schedule.schedule)
+            print (list(zip(schedule.crew, schedule.schedule)))
+
+            return render_template('Existing_schedule.html',
+                                   months         = MONTHS,
+                                   years          = YEARS,
+                                   current_month  = CURRENT_MONTH,
+                                   current_year   = CURRENT_YEAR,
+                                   # selected_month = selected_month,
+                                   # selected_year  = selected_year,
+                                   month_calendar = month_calendar, # plan miesiąca
+                                   work           = WORK,
+                                   team_names     = get_team_names_from_db(),
+                                   no_of_hours    = no_of_hours,
+                                   schedule       = schedule,
+                                   person_schedules = list(zip(schedule.crew, schedule.schedule)))
 
 
-
-    return redirect(url_for("index"))
-
-            # return redirect('/')
-            # return render_template('Grafik Iwonki.html',
-            #                        months        = MONTHS,
-            #                        years         = YEARS,
-            #                        current_month = CURRENT_MONTH,
-            #                        current_year  = CURRENT_YEAR,
-            #                        team_names    = get_team_names_from_db())
-
-
-        # if request.form["save_schedule"] == u"Wypełnij Grafik Automatycznie":     # Create new schedule
-        #     pass
+        if request.form["save_schedule"] == u"Wypełnij Grafik Automatycznie":     # Create new schedule
+            pass
 
 
 
