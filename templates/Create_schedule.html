@@ -7,6 +7,12 @@
 
 <form action="{{url_for('schedule_update')}}" method="post">
 
+
+    <p> Wprowadź nazwę dla Grafiki.
+    <p>Domyślnie będzie ona zawierała dzisiejszą datę ale wprowadź coś od siebie.
+    <p></p>
+    <p><input type="text" name="schedule_name" value="{{today}} wprowadź nazwę..."></p>
+
     <p>Liczba osób na dyżurze -->
     <select name="no_of_person">
         {% for elem in range(1, 10) %}
@@ -14,7 +20,7 @@
         {% endfor %}
     </select></p>
 
-    <p>Liczba godzin pracay w miesiącu na jedną osobę -->
+    <p>Liczba godzin pracy w miesiącu na jedną osobę -->
     <select name="no_of_hours">
         {% for elem in no_of_hours %}
         <option value="{{elem}}" SELECTED>{{elem}}</option>
@@ -46,19 +52,16 @@
         </tr>
         {% for person in team.crew %}
         <tr>
+            <td>{{person}}</td>
 
-            {{loop.index}}    To trzeba zmienić
-
-
-            <td><{{person}}</td>
             {% for no, day in month_calendar %}
-                <td>
-                    <select name="{{person}}_day{{no}}">
+            <td>
+                <select name="{{person}}_day{{no}}">
                     {% for w in work %}
                         <option value="{{w}}" SELECTED>{{w}}</option>
                     {% endfor %}
                 </select>
-                </td>
+            </td>
             {% endfor %}
         </tr>
         {% endfor %}

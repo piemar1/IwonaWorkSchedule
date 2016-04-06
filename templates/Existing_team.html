@@ -11,7 +11,7 @@
 <p></p>
 Tutaj wpisz nazwę dla zespołu -->
 
-<input type="text" name="team_name" value="{{team_name}}">
+<input type="text" name="team_name" value="{{team.team_name}}">
 
 <input type="submit" name="create_team" value="Zapisz załogę">
 <p></p>
@@ -33,7 +33,7 @@ Tutaj wpisz nazwę dla zespołu -->
     {% for n in range(size)%}
     <tr>
         <td>{{n + 1}}</td>
-        <td><input type="text" name="person{{n}}" value="{{crew[n]}}"></td>
+        <td><input type="text" name="person{{n}}" value="{{team.crew[n]}}"></td>
     </tr>
     {% endfor %}
 </table>
