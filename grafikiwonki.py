@@ -65,32 +65,36 @@ def read_current_team():
     return team
 
 
-def read_current_schedule(crew):
+def read_current_schedule():
     """
     Funkcja odczytuje dane wprowadzone na stronie dla schedule i zwraca instancję Schedule
     """
     schedule = []
+    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     month_calendar = session["month_calendar"]
     crew = session["team_crew"]
-    schedule_name = request.form["schedule_name"]
     selected_month = session["selected_month"]
     selected_year = session["selected_year"]
+
+    schedule_name = request.form["schedule_name"]
+    print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 
 
     for person in crew:
         person_schedule = []
         for no, day in month_calendar:
-            one_day = request.form[person + '_day' + str(no)]
+            one_day = request.form[person + u'_day' + str(no)]
             person_schedule.append(one_day)
         schedule.append("".join(person_schedule))
-    print("crew", crew)
-    print("schedule", schedule)
-    schedule = Schedule(schedule_name, TODAY, selected_month, selected_year, crew, schedule)
 
+    print("ccccccccccccccccccccccccccccccccccccccccccccccccccc")
+    schedule = Schedule(schedule_name, TODAY, selected_month,
+                        selected_year, crew, schedule)
     return schedule
 
 
 def get_month_calendar(selected_year, selected_month):
+
     """
     Funkcja zwraca listę z planem miesiąca, zawierającą informację o liczbie dni
     oraz poszczególnych dniach tygodniach.
@@ -119,7 +123,8 @@ def index():
                            years         = YEARS,
                            current_month = CURRENT_MONTH,
                            current_year  = CURRENT_YEAR,
-                           team_names    = get_team_names_from_db())
+                           team_names    = get_team_names_from_db(),
+                           schedule_names= get_schedule_names_from_db())
 
 
 # Obsługa klawiszy w panelu głównym, inicjalizacja i edycja grafiku oraz załóg
@@ -135,6 +140,7 @@ def grafik_update():
                                    size       = 15,
                                    today      = TODAY,
                                    team_names = get_team_names_from_db(),
+                                   schedule_names= get_schedule_names_from_db(),
                                    current_month = CURRENT_MONTH,
                                    current_year  = CURRENT_YEAR,
                                    months     = MONTHS,
@@ -148,6 +154,7 @@ def grafik_update():
             flash(u"Otworzono okno służące do edycji załogi '{}'.".format(team.team_name))
             return render_template('Existing_team.html',
                                    team_names    = get_team_names_from_db(),
+                                   schedule_names= get_schedule_names_from_db(),
                                    months        = MONTHS,
                                    years         = YEARS,
                                    today         = TODAY,
@@ -168,17 +175,19 @@ def grafik_update():
                                    years         = YEARS,
                                    current_month = CURRENT_MONTH,
                                    current_year  = CURRENT_YEAR,
-                                   team_names    = get_team_names_from_db())
+                                   team_names    = get_team_names_from_db(),
+                                   schedule_names= get_schedule_names_from_db())
 
 
         elif request.form["grafik_update"] == u"Stwórz nowy grafik":     # Create new schedule
 
             selected_month = request.form['month']
             selected_year = int(request.form['year'])
+
             team_name_for_new_schedule = request.form["team_for_new_schedule"]
+            team = get_team_from_db(team_name_for_new_schedule)
 
             month_calendar = get_month_calendar(selected_year, selected_month)
-            team = get_team_from_db(team_name_for_new_schedule)
 
             session["selected_month"] = selected_month
             session["selected_year"] = selected_year
@@ -196,15 +205,52 @@ def grafik_update():
                                    work           = WORK,
                                    today          = TODAY,
                                    team_names     = get_team_names_from_db(),
+                                   schedule_names= get_schedule_names_from_db(),
                                    no_of_hours    = no_of_hours,
                                    team           = team)
 
             pass
         elif request.form["grafik_update"] == u"Edycja grafiku":     # Edit existed schedule
+
+            schedule_to_edit = request.form["schedule_to_edit"]
+            schedule = get_schedule_from_db(schedule_to_edit)
+
+            month_calendar = get_month_calendar(schedule.year, schedule.month)
+
+            session["selected_month"] = schedule.month
+            session["selected_year"] = schedule.year
+            session["team_crew"] = schedule.crew
+            session["month_calendar"] = month_calendar
+
+            flash(u"Edycja grafiku pracy {}.".format(schedule.schedule_name))
+
+            return render_template('Existing_schedule.html',
+                                   months         = MONTHS,
+                                   years          = YEARS,
+                                   current_month  = CURRENT_MONTH,
+                                   current_year   = CURRENT_YEAR,
+                                   month_calendar = month_calendar, # plan miesiąca
+                                   work           = WORK,
+                                   team_names     = get_team_names_from_db(),
+                                   schedule_names= get_schedule_names_from_db(),
+                                   no_of_hours    = no_of_hours,
+                                   schedule       = schedule,
+                                   person_schedules = list(zip(schedule.crew, schedule.schedule)))
+
             pass
         elif request.form["grafik_update"] == u"Usunięcie grafiku":  # Delete existed schedule
             # pytanie z oknem czy na pewno JS
-            pass
+            schedule_to_delate = request.form["schedule_to_edit"]
+            delete_schedule_in_db(schedule_to_delate)
+
+            flash(u"Uwaga! Grafik '{}' został usunięty z rejestru aplikacji.".format(schedule_to_delate))
+            return render_template('Grafik Iwonki.html',
+                                   months        = MONTHS,
+                                   years         = YEARS,
+                                   current_month = CURRENT_MONTH,
+                                   current_year  = CURRENT_YEAR,
+                                   team_names    = get_team_names_from_db(),
+                                   schedule_names= get_schedule_names_from_db())
 
 
 # obsługa klawiszy w oknie z załogą, zapisywanie i edycja
@@ -244,31 +290,29 @@ def schedule_update():
     if request.method == 'POST':
 
         # odczytanie wprowadzonych danych dla schedule i zrobienie z tego instancji
-        crew = session["team_crew"]
-        schedule = read_current_schedule(crew)
+        print("11111111111111111111111111111111")
+        schedule = read_current_schedule()
+        print("22222222222222222222222222222222")
 
         month_calendar = get_month_calendar(schedule.year, schedule.month)
-
 
         if request.form["save_schedule"] == u"Zapisz Grafik":     # Create new schedule
 
             save_schedule_to_db(schedule)
+
             flash(u"Dokonano zapisu grafiku pracy {} w bazie danyc.".format(schedule.schedule_name))
 
-            print("schedule.crew", schedule.crew)
-            print("schedule.schedule", schedule.schedule)
-            print (list(zip(schedule.crew, schedule.schedule)))
+            print("ZIP SCHEDULE !!!!!", list(zip(schedule.crew, schedule.schedule)))
 
             return render_template('Existing_schedule.html',
                                    months         = MONTHS,
                                    years          = YEARS,
                                    current_month  = CURRENT_MONTH,
                                    current_year   = CURRENT_YEAR,
-                                   # selected_month = selected_month,
-                                   # selected_year  = selected_year,
                                    month_calendar = month_calendar, # plan miesiąca
                                    work           = WORK,
                                    team_names     = get_team_names_from_db(),
+                                   schedule_names= get_schedule_names_from_db(),
                                    no_of_hours    = no_of_hours,
                                    schedule       = schedule,
                                    person_schedules = list(zip(schedule.crew, schedule.schedule)))

@@ -14,6 +14,22 @@
 
         <form action="{{url_for('grafik_update')}}" method="post">
 
+        <div id="edit_team">
+			<p><b>Tworzenie lub edycja składu załogi.</b></p>
+			<input type="submit" name="grafik_update" value="Utwórz nową załogę">
+
+			<p><select name="edit_team">
+			   {% for team_name in team_names %}
+				<option value="{{team_name}}">{{team_name}}</option>
+			   {% endfor %}
+			</select><--Wybierz załogę, którą chcesz edytować albo usunąć.</p>
+			<p>
+			<input type="submit" name="grafik_update" value="Edytuj załogę">
+			<input type="submit" name="grafik_update" value="Usuń załogę">
+			</p>
+
+		</div>
+
 		<div id="new_schedule">
 				<p><b>Tworzenie nowego grafiku pracy.</b></p>
 				<p>Wybierz miesiąc, rok oraz drużynę </p>
@@ -49,35 +65,29 @@
 				<p><input type="submit" name="grafik_update" value="Stwórz nowy grafik"></p>
 		</div>
 
-		<div id="edit_team">
-			<p><b>Tworzenie lub edycja składu załogi.</b></p>
-			<input type="submit" name="grafik_update" value="Utwórz nową załogę">
-
-			<p><select name="edit_team">
-			   {% for team_name in team_names %}
-				<option value="{{team_name}}">{{team_name}}</option>
-			   {% endfor %}
-			</select><--Wybierz załogę, którą chcesz edytować albo usunąć.</p>
-
-			<p>
-			<input type="submit" name="grafik_update" value="Edytuj załogę">
-			<input type="submit" name="grafik_update" value="Usuń załogę">
-			</p>
-			<p>Należy dodac okno potwierdzające czy</p>
-			<p>użytkownik chce usunąć team - DO ZROBIENIA</p>
-		</div>
-
 		<div id="edit_schedules">
 			<p><b>Edycja istniejącego grafiku.</b></p>
 			<p>Lista istniejących już gafików do wyboru</p>
-			<p>DO ZROBIENIA</p>
-			<input type="submit" name="grafik_update" value="Edycja grafiku">
+
+    	    <select name="schedule_to_edit">
+		        {% for schedule_name in schedule_names %}
+			    <option value="{{schedule_name}}">{{schedule_name}}</option>
+		        {% endfor %}
+		    </select>
+
+            <input type="submit" name="grafik_update" value="Edycja grafiku">
 			<input type="submit" name="grafik_update" value="Usunięcie grafiku">
 			<p>Należy dodac okno potwierdzające czy użytkownik </p>
 			<p>chce usunąć grafik - DO ZROBIENIA</p>
 		</div>
         </form>
 	</div><p></p>
+
+
+
+
+
+
 ######################################################################################################
     <div id="flash">
     {% with messages = get_flashed_messages() %}

@@ -51,16 +51,16 @@
         <tr>
             <td>{{person}}</td>
 
-            {% for day_no, day in month_calendar %}
+            {% for no, day in month_calendar %}
             <td>
                 <select name="{{person}}_day{{no}}">
 
                     {% for w in work %}
-                        {% if person_schedule[day_no-1] == w %}
+                        {% if person_schedule[no-1] == w %}
                         <option value="{{w}}" SELECTED>{{w}}</option>
                         {% endif %}
 
-                        {% if person_schedule[day_no-1] != w %}
+                        {% if person_schedule[no-1] != w %}
                         <option value="{{w}}">{{w}}</option>
                         {% endif %}
                     {% endfor %}
