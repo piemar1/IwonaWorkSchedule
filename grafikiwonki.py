@@ -10,8 +10,24 @@ from models import Team, Schedule
 from database import *
 
 
-MONTHS = [u"styczeń", u"luty", u"marzec", u"kwiecień", u"maj", u"czerweic", u"lipiec",
+MONTHS = [u"styczeń", u"luty", u"marzec", u"kwiecień", u"maj", u"czerwiec", u"lipiec",
           u"sierpień", u"wrzesień", u"październik", u"listopad", u"grudzień"]
+
+YEARS = range(2016, 2020)
+WORK = (u"D", u"N", u'U', u".")
+TYPE_OF_WORK = (u"D", u"N")
+
+NIGHT = u"N"
+DAY = u"D"
+FREE = u"."
+
+TODAY = datetime.date.today()
+NOW = datetime.datetime.now()
+
+CURRENT_MONTH = MONTHS[NOW.month-1]
+CURRENT_YEAR = NOW.year
+
+WORKING_DAYS = (u"pon", u"wt", u"śr", u"czw", u"pt")
 
 WEEK_DAYS = {0: u"pon",
              1: u"wt",
@@ -21,18 +37,37 @@ WEEK_DAYS = {0: u"pon",
              5: u"sob",
              6: u"niedz"}
 
-WORK = (u"D", u"N", u'U', u".")
+WORKING_DAYS_NUMBER_TEXT = {10: "6 x dyżur 12h + 3h 50'",
+                            11: "6 x dyżur 12h + 11h 25'",
+                            12: "7 x dyżur 12h + 7h 0'",
+                            13: "8 x dyżur 12h + 2h 35'",
+                            14: "8 x dyżur 12h + 10h 10'",
+                            15: "9 x dyżur 12h + 5h 45'",
+                            16: "10 x dyżur 12h + 1h 20'",
+                            17: "10 x dyżur 12h + 8h 55'",
+                            18: "11 x dyżur 12h + 4h 30'",
+                            19: "12 x dyżur 12h + 0h 05'",
+                            20: "12 x dyżur 12h + 7h 40'",
+                            21: "13 x dyżur 12h + 3h 15'",
+                            22: "13 x dyżur 12h + 10h 50'",
+                            23: "14 x dyżur 12h + 6h 25'",
+                            24: "15 x dyżur 12h + 2h 0'"}
 
-YEARS = range(2016, 2020)
-
-TODAY = datetime.date.today()
-NOW = datetime.datetime.now()
-
-CURRENT_MONTH = MONTHS[NOW.month-1]
-CURRENT_YEAR = NOW.year
-
-no_of_hours = (x*10 for x in range(15, 22))
-
+WORKING_DAYS_NUMBERS = {10: 6,
+                        11: 6,
+                        12: 7,
+                        13: 8,
+                        14: 8,
+                        15: 9,
+                        16: 10,
+                        17: 10,
+                        18: 11,
+                        19: 12,
+                        20: 12,
+                        21: 13,
+                        22: 13,
+                        23: 14,
+                        24: 15}
 
 DEBUG = True  # configuration
 SECRET_KEY = 'l55Vsm2ZJ5q1U518PlxfM5IE2T42oULB'
@@ -70,15 +105,12 @@ def read_current_schedule():
     Funkcja odczytuje dane wprowadzone na stronie dla schedule i zwraca instancję Schedule
     """
     schedule = []
-    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
     month_calendar = session["month_calendar"]
     crew = session["team_crew"]
     selected_month = session["selected_month"]
     selected_year = session["selected_year"]
 
     schedule_name = request.form["schedule_name"]
-    print("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-
 
     for person in crew:
         person_schedule = []
@@ -87,10 +119,17 @@ def read_current_schedule():
             person_schedule.append(one_day)
         schedule.append("".join(person_schedule))
 
-    print("ccccccccccccccccccccccccccccccccccccccccccccccccccc")
     schedule = Schedule(schedule_name, TODAY, selected_month,
                         selected_year, crew, schedule)
     return schedule
+
+
+def get_number_of_working_days_month(month_week_days):
+    number = 0
+    for no, day in month_week_days:
+        if day in WORKING_DAYS:
+            number += 1
+    return number
 
 
 def get_month_calendar(selected_year, selected_month):
@@ -112,6 +151,17 @@ def get_month_calendar(selected_year, selected_month):
     month_week_days = list(zip([elem + 1 for elem in range(day_no)], week_days))
 
     return month_week_days
+
+
+def get_number_of_working_days(month_calendar):
+    """
+    Funkcja zwraca liczbą dnia pracujących w wybranym miesiącu.
+    """
+    number = 0
+    for day_number, day in month_calendar:
+        if day in WORKING_DAYS:
+            number += 1
+    return number
 
 
 # inicjalizacja strony
@@ -206,10 +256,9 @@ def grafik_update():
                                    today          = TODAY,
                                    team_names     = get_team_names_from_db(),
                                    schedule_names= get_schedule_names_from_db(),
-                                   no_of_hours    = no_of_hours,
-                                   team           = team)
+                                   team           = team,
+                                   workin_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
 
-            pass
         elif request.form["grafik_update"] == u"Edycja grafiku":     # Edit existed schedule
 
             schedule_to_edit = request.form["schedule_to_edit"]
@@ -233,11 +282,10 @@ def grafik_update():
                                    work           = WORK,
                                    team_names     = get_team_names_from_db(),
                                    schedule_names= get_schedule_names_from_db(),
-                                   no_of_hours    = no_of_hours,
                                    schedule       = schedule,
-                                   person_schedules = list(zip(schedule.crew, schedule.schedule)))
+                                   person_schedules = list(zip(schedule.crew, schedule.schedule)),
+                                   workin_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
 
-            pass
         elif request.form["grafik_update"] == u"Usunięcie grafiku":  # Delete existed schedule
             # pytanie z oknem czy na pewno JS
             schedule_to_delate = request.form["schedule_to_edit"]
@@ -290,9 +338,7 @@ def schedule_update():
     if request.method == 'POST':
 
         # odczytanie wprowadzonych danych dla schedule i zrobienie z tego instancji
-        print("11111111111111111111111111111111")
         schedule = read_current_schedule()
-        print("22222222222222222222222222222222")
 
         month_calendar = get_month_calendar(schedule.year, schedule.month)
 
@@ -301,8 +347,6 @@ def schedule_update():
             save_schedule_to_db(schedule)
 
             flash(u"Dokonano zapisu grafiku pracy {} w bazie danyc.".format(schedule.schedule_name))
-
-            print("ZIP SCHEDULE !!!!!", list(zip(schedule.crew, schedule.schedule)))
 
             return render_template('Existing_schedule.html',
                                    months         = MONTHS,
@@ -313,13 +357,52 @@ def schedule_update():
                                    work           = WORK,
                                    team_names     = get_team_names_from_db(),
                                    schedule_names= get_schedule_names_from_db(),
-                                   no_of_hours    = no_of_hours,
                                    schedule       = schedule,
                                    person_schedules = list(zip(schedule.crew, schedule.schedule)))
 
 
-        if request.form["save_schedule"] == u"Wypełnij Grafik Automatycznie":     # Create new schedule
-            pass
+        if request.form["save_schedule"] == u"Uzupełnij Grafik Automatycznie !":     # Create new schedule
+
+            print("START")
+            person_per_day = int(request.form["no_of_person_day"])      # liczba osón na dyżurze dziennym
+            person_per_night = int(request.form["no_of_person_night"])  # liczba osón na dyżurze nocnym
+
+            no_of_working_days = get_number_of_working_days_month(month_calendar)
+
+
+
+            print("przed IMPORTEM")
+            from fill_schedule import fill_the_schedule
+            print("PO IMPORTEM")
+
+            number_of_tries = 10
+            while number_of_tries:
+                try:
+                    schedule.schedule = fill_the_schedule(schedule,
+                                                          no_of_working_days,
+                                                          person_per_day,
+                                                          person_per_night)
+
+                    flash(u"Dokonano automatycznego uzupełnienia grafiku {}.".format(schedule.schedule_name))
+
+                    return render_template('Existing_schedule.html',
+                                           months         = MONTHS,
+                                           years          = YEARS,
+                                           current_month  = CURRENT_MONTH,
+                                           current_year   = CURRENT_YEAR,
+                                           month_calendar = month_calendar, # plan miesiąca
+                                           work           = WORK,
+                                           team_names     = get_team_names_from_db(),
+                                           schedule_names= get_schedule_names_from_db(),
+                                           schedule       = schedule,
+                                           person_schedules = list(zip(schedule.crew, schedule.schedule)))
+
+                except IndexError:
+                    flash(u"Atomatyczne uzupełnienie grafiku {} nie powiodło się.".format(schedule.schedule_name))
+                number_of_tries -= 1
+
+
+
 
 
 

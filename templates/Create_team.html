@@ -2,13 +2,24 @@
 {% block body %}
 
 
+<script>
+function myCreateFunction() {
+    var table = document.getElementById("team_table");
+    var row = table.insertRow(-1);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    cell1.innerHTML = "NEW CELL1";
+    cell2.innerHTML = "NEW CELL2";
 
+}
 
-<p id="demo">JavaScript can change the style of an HTML element.</p>
+function myDeleteFunction() {
+    document.getElementById("team_table").deleteRow(-1);
+}
+</script>
+
 
 dzisiejsza data {{today}}
-
-
 
 <p>Wprowadź dane osób z zespołu.</p>
 
@@ -24,61 +35,25 @@ Tutaj wpisz nazwę dla zespołu -->
 <input type="submit" name="create_team" value="Zapisz załogę">
 <p></p>
 
+</form>
 
-<button type="button" onclick="zmiana({{size}})">dodaj osobę</button>
-<button type="button" onclick="myFunction()">odejmij osobę</button>
-<button type="button" onclick="myFunction2()">odejmij osobę</button>
+<button onclick="myCreateFunction()">Create row</button>
+<button onclick="myDeleteFunction()">Delete row</button>
 
 <p></p>
 
-
-<script>
-
-function myFunction() {
-    var x = document.getElementById("demo");
-    x.style.fontSize = "25px";
-    x.style.color = "red";
-}
-function myFunction2() {
-    var x = document.getElementById("demo");
-    x.style.fontSize = "45px";
-    x.style.color = "red";
-}
-function zmiana(str) {
-    str += 1
-    alert(str)
-    return str
-}
-
-function plus_person() {
-    var size = {{size}};
-    size += 1
-    document.getElementById("demo2").innerHTML = size;
-}
-
-
-</script>
-
-
-<p id="demo2"></p>
-
-
-zmienna size wynosi obecnie {{size}} !!!!!!
-
-
-<table style="width:100%">
+<table id="team_table" style="width:100%">
     <tr>
-    <td>Liczba</td>
-    <td>Imię Nazwisko</td>
+        <td>Liczba</td>
+        <td>Imię Nazwisko</td>
     </tr>
     {% for n in range(size)%}
-    <tr>
-        <td>{{n + 1}}</td>
-        <td><input type="text" name="person{{n}}" value=""></td>
-    </tr>
+        <tr>
+            <td>{{n + 1}}</td>
+            <td><input type="text" name="person{{n}}" value=""></td>
+        </tr>
     {% endfor %}
 </table>
-</form>
 
 
 {% endblock %}
