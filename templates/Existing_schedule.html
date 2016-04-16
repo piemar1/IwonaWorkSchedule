@@ -1,92 +1,43 @@
-{% extends "Grafik Iwonki.html" %}
-{% block body %}
+{% extends "base_schedule.html" %}
+{% block table %}
 
-<p>Okno umożliwoające edycje grafiku pracy - <b>{{schedule.schedule_name}}</b>
-    dla miesiąca <b>{{schedule.month}} {{schedule.year}}</b>.</p>
-<p></p>
-
-<form action="{{url_for('schedule_update')}}" method="post">
-
-    <p></p>
-    <p><input type="text" name="schedule_name" value="{{schedule.schedule_name}}"></p>
-
-    <p>Liczba osób na dyżurze -- w dzień>
-    <select name="no_of_person_day">
-        {% for elem in range(1, 10) %}
-            {% if elem == 4 %}
-            <option value="{{elem}}" SELECTED>{{elem}}</option>
-            {% endif %}
-            {% if elem != 4 %}
-            <option value="{{elem}}">{{elem}}</option>
-            {% endif %}
+<table style="width:100%">
+    <tr>
+        <td></td>
+        {% for no, day in month_calendar %}
+        <td><b>{{no}}</b></td>
         {% endfor %}
-    </select></p>
+    </tr>
 
-    <p>Liczba osób na dyżurze -- w nocy>
-    <select name="no_of_person_night">
-        {% for elem in range(1, 10) %}
-            {% if elem == 2 %}
-            <option value="{{elem}}" SELECTED>{{elem}}</option>
-            {% endif %}
-            {% if elem != 2 %}
-            <option value="{{elem}}">{{elem}}</option>
-            {% endif %}
+    <tr>
+        <td><b>Imię Nazwisko</b></td>
+        {% for no, day in month_calendar  %}
+        <td><b>{{day}}</b></td>
         {% endfor %}
-    </select></p>
+    </tr>
+    {% for person, person_schedule in person_schedules %}
+    <tr>
+        <td>{{person}}</td>
 
-    <p>Liczba godzin pracy w miesiącu na jedną osobę --> {{workin_days}}</p>
-    <p>Liczba możliwych dyżurów (dniówka lub nocka) pod rząd -->
-    <select name="no_of_daywork">
-        {% for elem in range(2,5) %}
-        <option value="{{elem}}" SELECTED>{{elem}}</option>
+        {% for no, day in month_calendar %}
+        <td>
+            <select name="{{person}}_day{{no}}">
+
+                {% for w in work %}
+                    {% if person_schedule[no-1] == w %}
+                    <option value="{{w}}" SELECTED><b>{{w}}</b></option>
+                    {% endif %}
+
+                    {% if person_schedule[no-1] != w %}
+                    <option value="{{w}}">{{w}}</option>
+                    {% endif %}
+                {% endfor %}
+
+            </select>
+        </td>
         {% endfor %}
-    </select></p>
-
-    <input type="submit" name="save_schedule" value="Uzupełnij Grafik Automatycznie !">
-    <input type="submit" name="save_schedule" value="Zapisz Grafik">
-
-    <table style="width:100%">
-        <tr>
-            <td></td>
-            {% for no, day in month_calendar %}
-            <td><b>{{no}}</b></td>
-            {% endfor %}
-        </tr>
-
-        <tr>
-            <td><b>Imię Nazwisko</b></td>
-            {% for no, day in month_calendar  %}
-            <td><b>{{day}}</b></td>
-            {% endfor %}
-        </tr>
-        {% for person, person_schedule in person_schedules %}
-        <tr>
-            <td>{{person}}</td>
-
-            {% for no, day in month_calendar %}
-            <td>
-                <select name="{{person}}_day{{no}}">
-
-                    {% for w in work %}
-                        {% if person_schedule[no-1] == w %}
-                        <option value="{{w}}" SELECTED><b>{{w}}</b></option>
-                        {% endif %}
-
-                        {% if person_schedule[no-1] != w %}
-                        <option value="{{w}}">{{w}}</option>
-                        {% endif %}
-                    {% endfor %}
-
-                </select>
-            </td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
-
-
-
-
-</form>
+    </tr>
+    {% endfor %}
+</table>
 
 {% endblock %}

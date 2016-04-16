@@ -39,6 +39,9 @@ class Person:
         self.schedule = schedule
         self.working_days = self.get_working_days_number_person()
 
+    def __str__(self):
+        return str(self.name)
+
     def get_working_days_number_person(self):
         """
         Funkcja zwraca liczbę dyżurów dziennych lub nocnych w ciągu miesiąca grafiku.
@@ -57,11 +60,56 @@ class Person:
             return True
         return False
 
-    def __str__(self):
-        return str(self.name)
+    def take_work(self, day_number, work):
+        """
+        Metoda wprowadza zmiany w grafiku dla zadanego, grafiku, dnia i rodzaju dyżuru
+        """
+        if day_number == 0:
+            self.schedule = "{}{}".format(work, self.schedule[1:])
 
+        else:
+            self.schedule = "{}{}{}".format(self.schedule[:day_number],
+                                            work,
+                                            self.schedule[day_number + 1:])
 
+    def filtre_double_work(self):
+        """
+        Metoda zwraca True jeśli osoba nie ma podwójnego dyżuru ND - nocka - dniówka 24h, inaczej False.
+        """
+        if "ND" in self.schedule:
+            return False
+        return True
 
+    def filtre_work_days_in_week(self, working_days_number):
+        """
+        Metoda zwraca True jeśli liczba dni roboczych w schedule nie przekracza 4, inaczej False.
+        """
+        def filtr_working_days_in_week(str, working_days_number):
+            """
+            Funkcja zwraca True jeśli liczba dni roboczych w str nie przekracza 4, inaczej False
+            """
+            number = 0
+            for day in str:
+                if day == u"D" or day == u"N":
+                    number += 1
+            if number > working_days_number:
+                return False
+            return True
+
+        schedule_parts = [self.schedule[numbers:numbers + 7] for numbers in range(len(self.schedule) - 7)]
+        results = [filtr_working_days_in_week(parts, working_days_number) for parts in schedule_parts]
+
+        if all(results):
+            return True
+        return False
+
+    def filtre_work_days_in_month(self, no_of_working_days):
+        """
+        Metoda zwraca Trur jeśli osoba ma mniej dni roboczych w miesiącu niż no_of_working_days, inaczej False.
+        """
+        if self.get_working_days_number_person() <= no_of_working_days:
+            return True
+        return False
 
 
 if __name__ == "__main__":

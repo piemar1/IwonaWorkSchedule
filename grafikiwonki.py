@@ -244,6 +244,10 @@ def grafik_update():
             session["team_crew"] = team.crew
             session["month_calendar"] = month_calendar
 
+            flash(u"Czas przystąpić do układania grafiku dla załogi '{}' dla miesiąca {} {}.".format(team.team_name,
+                                                                                                    selected_month,
+                                                                                                    selected_year))
+
             return render_template('Create_schedule.html',
                                    months         = MONTHS,
                                    years          = YEARS,
@@ -257,7 +261,7 @@ def grafik_update():
                                    team_names     = get_team_names_from_db(),
                                    schedule_names= get_schedule_names_from_db(),
                                    team           = team,
-                                   workin_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
+                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
 
         elif request.form["grafik_update"] == u"Edycja grafiku":     # Edit existed schedule
 
@@ -271,7 +275,9 @@ def grafik_update():
             session["team_crew"] = schedule.crew
             session["month_calendar"] = month_calendar
 
-            flash(u"Edycja grafiku pracy {}.".format(schedule.schedule_name))
+            flash(u"Edycja grafiku pracy '{}' stworzonego dla miesiąca {} {}.".format(schedule.schedule_name,
+                                                                                    schedule.month,
+                                                                                    schedule.year))
 
             return render_template('Existing_schedule.html',
                                    months         = MONTHS,
@@ -284,7 +290,7 @@ def grafik_update():
                                    schedule_names= get_schedule_names_from_db(),
                                    schedule       = schedule,
                                    person_schedules = list(zip(schedule.crew, schedule.schedule)),
-                                   workin_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
+                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
 
         elif request.form["grafik_update"] == u"Usunięcie grafiku":  # Delete existed schedule
             # pytanie z oknem czy na pewno JS
@@ -367,9 +373,7 @@ def schedule_update():
             person_per_day = int(request.form["no_of_person_day"])      # liczba osón na dyżurze dziennym
             person_per_night = int(request.form["no_of_person_night"])  # liczba osón na dyżurze nocnym
 
-            no_of_working_days = get_number_of_working_days_month(month_calendar)
-
-
+            no_of_daywork = WORKING_DAYS_NUMBERS[get_number_of_working_days_month(month_calendar)]
 
             print("przed IMPORTEM")
             from fill_schedule import fill_the_schedule
@@ -379,9 +383,18 @@ def schedule_update():
             while number_of_tries:
                 try:
                     schedule.schedule = fill_the_schedule(schedule,
-                                                          no_of_working_days,
+                                                          no_of_daywork,
                                                           person_per_day,
                                                           person_per_night)
+
+                    print("schedule.schedule_name", schedule.schedule_name)
+
+                    #########################3
+                    from models import Person
+                    for person, one_schedule in list(zip(schedule.crew, schedule.schedule)):
+                        one = Person(person, one_schedule)
+                        print(one.name[:3], "   ", one.schedule, "   ", one.get_working_days_number_person())
+                    #########################3
 
                     flash(u"Dokonano automatycznego uzupełnienia grafiku {}.".format(schedule.schedule_name))
 
