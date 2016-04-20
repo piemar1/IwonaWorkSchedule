@@ -29,13 +29,13 @@ CURRENT_YEAR = NOW.year
 
 WORKING_DAYS = (u"pon", u"wt", u"śr", u"czw", u"pt")
 
-WEEK_DAYS = {0: u"pon",
+WEEK_DAYS = {0: u"pn",
              1: u"wt",
              2: u"śr",
              3: u"czw",
              4: u"pt",
-             5: u"sob",
-             6: u"niedz"}
+             5: u"so",
+             6: u"n"}
 
 WORKING_DAYS_NUMBER_TEXT = {10: "6 x dyżur 12h + 3h 50'",
                             11: "6 x dyżur 12h + 11h 25'",
@@ -125,6 +125,9 @@ def read_current_schedule():
 
 
 def get_number_of_working_days_month(month_week_days):
+    """
+    Funckcja zwraca liczbę dni roboczych w danycm miesiącu
+    """
     number = 0
     for no, day in month_week_days:
         if day in WORKING_DAYS:
@@ -345,13 +348,10 @@ def schedule_update():
 
         # odczytanie wprowadzonych danych dla schedule i zrobienie z tego instancji
         schedule = read_current_schedule()
-
         month_calendar = get_month_calendar(schedule.year, schedule.month)
 
         if request.form["save_schedule"] == u"Zapisz Grafik":     # Create new schedule
-
             save_schedule_to_db(schedule)
-
             flash(u"Dokonano zapisu grafiku pracy {} w bazie danyc.".format(schedule.schedule_name))
 
             return render_template('Existing_schedule.html',
@@ -364,7 +364,8 @@ def schedule_update():
                                    team_names     = get_team_names_from_db(),
                                    schedule_names= get_schedule_names_from_db(),
                                    schedule       = schedule,
-                                   person_schedules = list(zip(schedule.crew, schedule.schedule)))
+                                   person_schedules = list(zip(schedule.crew, schedule.schedule)),
+                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
 
 
         if request.form["save_schedule"] == u"Uzupełnij Grafik Automatycznie !":     # Create new schedule
@@ -375,9 +376,7 @@ def schedule_update():
 
             no_of_daywork = WORKING_DAYS_NUMBERS[get_number_of_working_days_month(month_calendar)]
 
-            print("przed IMPORTEM")
             from fill_schedule import fill_the_schedule
-            print("PO IMPORTEM")
 
             number_of_tries = 10
             while number_of_tries:
@@ -406,14 +405,26 @@ def schedule_update():
                                            month_calendar = month_calendar, # plan miesiąca
                                            work           = WORK,
                                            team_names     = get_team_names_from_db(),
-                                           schedule_names= get_schedule_names_from_db(),
+                                           schedule_names = get_schedule_names_from_db(),
                                            schedule       = schedule,
-                                           person_schedules = list(zip(schedule.crew, schedule.schedule)))
+                                           person_schedules = list(zip(schedule.crew, schedule.schedule)),
+                                           working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
 
                 except IndexError:
-                    flash(u"Atomatyczne uzupełnienie grafiku {} nie powiodło się.".format(schedule.schedule_name))
-                number_of_tries -= 1
-
+                    number_of_tries -= 1
+            flash(u"Atomatyczne uzupełnienie grafiku {} nie powiodło się.".format(schedule.schedule_name))
+            return render_template('Existing_schedule.html',
+                                   months         = MONTHS,
+                                   years          = YEARS,
+                                   current_month  = CURRENT_MONTH,
+                                   current_year   = CURRENT_YEAR,
+                                   month_calendar = month_calendar, # plan miesiąca
+                                   work           = WORK,
+                                   team_names     = get_team_names_from_db(),
+                                   schedule_names = get_schedule_names_from_db(),
+                                   schedule       = schedule,
+                                   person_schedules = list(zip(schedule.crew, schedule.schedule)),
+                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)])
 
 
 

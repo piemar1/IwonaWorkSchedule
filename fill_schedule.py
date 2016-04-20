@@ -45,7 +45,7 @@ def get_free_people(day_number, people, work, no_of_working_days):
     - liczba dyżurów w miesiącu
     """
 
-    # tworzenie tymczasowych insyancji Person - tylko w celu wypełniania grafiku
+    # tworzenie tymczasowych instancji Person - tylko w celu wypełniania grafiku
     people_for_one_day = [Person(person.name, person.schedule) for person in people]
 
     # filtrowanie osób, które mają wolny dzień
