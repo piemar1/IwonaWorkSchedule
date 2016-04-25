@@ -1,7 +1,7 @@
 {% extends "Grafik Iwonki.html" %}
 {% block body %}
 
-<form action="{{url_for('schedule_update')}}" method="post">
+<form action="{{url_for('schedule_update')}}" method="post" enctype=multipart/form-data>
 
     <p> Wprowadź nazwę dla Grafiku. Domyślnie będzie ona zawierała dzisiejszą datę ale wprowadź coś od siebie.
     <p></p>
@@ -31,12 +31,42 @@
         {% endfor %}
     </select></p>
 
-    <p>Liczba godzin pracy w miesiącu na jedną osobę --> <b>{{working_days}}</b></p>
+    <p>Liczba dni roboczych w misiącu wedłóg kalendarza -->
+     <select name="no_of_working_days_in_nonth">
+        {% for elem in WORKING_DAYS_NUMBER_TEXT %}
+            {% if elem == working_days %}
+            <option value="{{elem}}" SELECTED>{{elem}}</option>
+            {% endif %}
+            {% if elem != working_days %}
+            <option value="{{elem}}">{{elem}}</option>
+            {% endif %}
+        {% endfor %}
+    </select></p>
+
+
+    <p>Liczba godzin pracy w miesiącu na jedną osobę -->
+    <select name="no_of_working_days_per_person">
+        {% for elem in WORKING_DAYS_NUMBERS %}
+            {% if elem == no_of_daywork %}
+            <option value="{{elem}}" SELECTED>{{elem}}</option>
+            {% endif %}
+            {% if elem != no_of_daywork %}
+            <option value="{{elem}}">{{elem}}</option>
+            {% endif %}
+        {% endfor %}
+    </select></p>
+
+
     <p>Ważne! - program domyślnie uniemożliwia wprowadzenie dużuru 24h
     <p>       - liczba możliwych dyżurów w ciągu 7 dni --> 4
     <p>
     <input type="submit" name="save_schedule" value="Uzupełnij Grafik Automatycznie !">
     <input type="submit" name="save_schedule" value="Zapisz Grafik">
+
+    <a href="/uploads/{{schedule.schedule_name}}.pdf" download>
+       <img alt="Export to PDF" width="104" height="142">
+    </a>
+
 
 
 {% block table %} {% endblock %}
