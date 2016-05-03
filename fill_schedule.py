@@ -6,6 +6,7 @@ import random
 from models import Person, Schedule
 
 
+
 def create_team_for_schedule_filing(schedule):
     """
     Tworzy instancje klas Person w celu uzupełniania grafiku

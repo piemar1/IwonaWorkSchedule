@@ -14,6 +14,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 from models import Person, Schedule
+import os
+import io
 
 
 # dodanie czcionki z polskimi literami
@@ -32,7 +34,7 @@ class WritePDF:
     """
     Klasa zawierająca potrzebne metody do zapisu grafiku schedule w postaci tabeli w pliku pdf.
     """
-    def __init__(self, schedule, month_calendar, month_working_days, no_of_workdays):
+    def __init__(self, file_like_handle, schedule, month_calendar, month_working_days, no_of_workdays):
         """Constructor"""
 
         self.schedule = schedule
@@ -43,7 +45,13 @@ class WritePDF:
         self.width, self.height = letter
         self.styles = getSampleStyleSheet()
 
-        self.file_name = "{}.pdf".format(self.schedule.schedule_name)
+        # self.file_name = "{}.pdf".format(self.schedule.schedule_name)
+        # self.buffer = io.StringIO()             # buffor do tworzenia pliku w pamięci
+        # self.buffer = io.BytesIO()             # buffor do tworzenia pliku w pamięci
+        # self.buffer = io.FileIO("pdf")
+
+
+        self.buffer = file_like_handle
 
         self.story = []
 
@@ -55,16 +63,20 @@ class WritePDF:
             canvas.setPageSize(landscape(letter))
 
         # creation of the BaseDocTempalte. showBoundary=0 to hide the debug borders
-        self.doc = BaseDocTemplate(self.file_name,
+        # self.doc = BaseDocTemplate(self.file_name,
+        #                            showBoundary=1,
+        #                            pagesize=landscape(letter))
+
+        # tworzenie pliku w bufforze !!!!
+        self.doc = BaseDocTemplate(self.buffer,
                                    showBoundary=1,
-                                   pagesize = landscape(letter))
+                                   pagesize=landscape(letter))
 
         # create the frames. Here you can adjust the margins
         frame = Frame(self.doc.leftMargin-60,
                       self.doc.bottomMargin - 50,
                       self.doc.width + 120,
                       self.doc.height + 110, id='first_frame')
-
 
         # add the PageTempaltes to the BaseDocTemplate.
         # You can also modify those to adjust the margin if you need more control over the Frames.
@@ -75,6 +87,18 @@ class WritePDF:
         self.create_text()
         self.create_table()
         self.doc.build(self.story)
+
+        # print("self.buffer.tell()", self.buffer.tell())
+        # print("self.buffer.tell()", self.buffer.read())
+        # print("self.buffer.tell()", self.buffer.getbuffer())   #!!!!!!!!!!!!!!!!!!!11
+        #
+        #
+        # pdf_file = self.buffer.getbuffer()
+        #
+        #
+        # # pdf_file = self.buffer.getvalue()
+        # return pdf_file
+
 
     def create_text(self):
         """

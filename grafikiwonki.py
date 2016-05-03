@@ -6,17 +6,17 @@ przekazywanie między widikami obiektów w url, np przekazywanie id z bazy danyc
 """
 
 import os
-
+import io
 from werkzeug import secure_filename
 from werkzeug.datastructures import FileStorage
 
-from flask import Flask, render_template, url_for, flash, redirect, request, session
+from flask import Flask, render_template, flash, redirect, request, session, make_response, Response, url_for, send_file
 import datetime
 import calendar
 import webbrowser
+import requests
 
 from models import Team, Schedule
-from write_pdf import WritePDF
 from database import *
 
 MONTHS = [u"styczeń", u"luty", u"marzec", u"kwiecień", u"maj", u"czerwiec", u"lipiec",
@@ -85,14 +85,14 @@ ALLOWED_EXTENSIONS = set("pdf")
 
 app = Flask(__name__)
 app.config.from_object(__name__)   # wprowadzanie konfiguracja aplikacji z obecnej lokalizacji
-app.config[UPLOAD_FOLDER] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-def allowed_file(filename):
-    """
-    Funkcja sprawdza czy można uplodować zadany plik.
-    """
-    return "." in filename and filename.rsplit(".", 1)[1] in ALLOWED_EXTENSIONS
+# def allowed_file(filename):
+#     """
+#     Funkcja sprawdza czy można uplodować zadany plik.
+#     """
+#     return "." in filename and filename.rsplit(".", 1)[1] in ALLOWED_EXTENSIONS
 
 
 def read_current_team():
@@ -141,7 +141,7 @@ def read_current_schedule():
 
 def get_number_of_working_days_month(month_week_days):
     """
-    Funckcja zwraca liczbę dni roboczych w danycm miesiącu
+    Funckcja zwraca liczbę dni roboczych w danym miesiącu
     """
     number = 0
     for no, day in month_week_days:
@@ -376,22 +376,7 @@ def schedule_update():
         month_working_days = request.form["no_of_working_days_in_nonth"]
         no_of_workdays = request.form["no_of_working_days_per_person"]
 
-
-
-
-        t = WritePDF(schedule, month_calendar, month_working_days, no_of_workdays)
-        t.run()
-        print("PDF CREATED !!!!")
-
-        file_name = "/home/marcin/Pulpit/MyProjectGitHub/IwonaWorkSchedule/{}.pdf".format(schedule.schedule_name)
-        file_name = "{}.pdf".format(schedule.schedule_name)
-        file = FileStorage(filename=file_name)
-
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-        if request.form["save_schedule"] == u"Zapisz Grafik":     # Create new schedule
+        if request.form["save_schedule"] == u"Zapisz Grafik w bazie danych":     # Create new schedule
             save_schedule_to_db(schedule)
             flash(u"Dokonano zapisu grafiku pracy {} w bazie danyc.".format(schedule.schedule_name))
 
@@ -408,34 +393,21 @@ def schedule_update():
                                    person_schedules = list(zip(schedule.crew, schedule.schedule)),
                                    working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)],
                                    WORKING_DAYS_NUMBER_TEXT = WORKING_DAYS_NUMBER_TEXT.values(),
-
                                    no_of_daywork = no_of_daywork,
                                    WORKING_DAYS_NUMBERS = WORKING_DAYS_NUMBERS.values())
 
         if request.form["save_schedule"] == u"Zapisz w formacie PDF":
 
-                return render_template('Existing_schedule.html',
-                                   months         = MONTHS,
-                                   years          = YEARS,
-                                   current_month  = CURRENT_MONTH,
-                                   current_year   = CURRENT_YEAR,
-                                   month_calendar = month_calendar, # plan miesiąca
-                                   work           = WORK,
-                                   team_names     = get_team_names_from_db(),
-                                   schedule_names= get_schedule_names_from_db(),
-                                   schedule       = schedule,
-                                   person_schedules = list(zip(schedule.crew, schedule.schedule)),
-                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)],
-                                   no_of_daywork = no_of_daywork,
-                                   WORKING_DAYS_NUMBERS = WORKING_DAYS_NUMBERS.values())
+            from write_pdf import WritePDF
 
+            buffor = io.BytesIO()
+            pdf_buffor = WritePDF(buffor, schedule, month_calendar, month_working_days, no_of_workdays)
+            pdf_buffor.run()                                    #  tu jest błąd  i jest kwestia buffor
+            pdf = buffor.getvalue()
+            print("PDF CREATED !!!!")
 
-        if request.form["save_schedule"] == u"Uzupełnij Grafik Automatycznie !":     # Create new schedule
-
-            # print("START")
-            person_per_day = int(request.form["no_of_person_day"])      # liczba osón na dyżurze dziennym
-            person_per_night = int(request.form["no_of_person_night"])  # liczba osón na dyżurze nocnym
-
+            return Response(pdf, mimetype='application/pdf',
+                            headers={'Content-Disposition':u'attachment;filename=grafik.pdf'}) # BRAk polskich liter !!!!!
 
             from fill_schedule import fill_the_schedule
 
@@ -446,18 +418,6 @@ def schedule_update():
                                                           no_of_daywork,
                                                           person_per_day,
                                                           person_per_night)
-
-                    # print("schedule.schedule_name", schedule.schedule_name)
-
-                    # #########################
-                    # from models import Person
-                    # for person, one_schedule in list(zip(schedule.crew, schedule.schedule)):
-                    #     one = Person(person, one_schedule)
-                    #     print(one.name[:3], "   ", one.schedule, "   ", one.get_working_days_number_person())
-                    # #########################
-                    t = WritePDF(schedule, month_calendar, month_working_days, no_of_workdays)
-                    t.run()
-                    print("PDF CREATED !!!!")
 
                     flash(u"Dokonano automatycznego uzupełnienia grafiku {}.".format(schedule.schedule_name))
 
@@ -480,10 +440,6 @@ def schedule_update():
                 except IndexError:
                     number_of_tries -= 1
 
-            t = WritePDF(schedule, month_calendar, month_working_days, no_of_workdays)
-            t.run()
-            print("PDF CREATED !!!!")
-
             flash(u"Atomatyczne uzupełnienie grafiku {} nie powiodło się !!! ;-(".format(schedule.schedule_name))
             return render_template('Existing_schedule.html',
                                    months         = MONTHS,
@@ -502,9 +458,32 @@ def schedule_update():
                                    WORKING_DAYS_NUMBERS = WORKING_DAYS_NUMBERS.values())
 
 
+@app.route('/uploads/<filename>/')
+def uploaded_file(filename):
+
+    # 1   DZIAŁA
+    # return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+    # 2   DZIAŁA
+    # print(help(send_from_directory))   otwiera plik w przeglądarce
+    # return send_from_directory("/home/marcin/Pulpit/MyProjectGitHub/robocze/", "grafik.pdf")
+
+    # 3   DZIAŁA          umożliwia ściągnięcie pliku na dysk albo otwarcie
+    # resp = make_response(open("/home/marcin/Pulpit/MyProjectGitHub/robocze/grafik.pdf", "rb").read())
+    # resp.content_type = "document/pdf"
+    # return resp
 
 
+    # 4   DZIAŁA          umożliwia ściągnięcie pliku na dysk albo otwarcie
+    # response = Response(mimetype='application/pdf')
+    # response.
 
+    resp = make_response(open(filename, "rb").read())
+    # resp = make_response(filename)
+
+
+    resp.content_type = "document/pdf"
+    return resp
 
 
 
