@@ -9,7 +9,7 @@
 <body>
     <div id="main">
 		<div id="header">
-			<h1>Grafik Iwonki</h1>
+			<h1>GrafikIwonki</h1>
 		</div>
 
         <form action="{{url_for('grafik_update')}}" method="post">
@@ -66,7 +66,7 @@
 		</div>
 
 		<div id="edit_schedules">
-			<p><b>Edycja istniejącego grafiku.</b></p>
+			<p><b>Edycja lub usunięcie istniejącego grafiku.</b></p>
 			<p>Lista istniejących już gafików do wyboru</p>
 
     	    <select name="schedule_to_edit">
@@ -74,21 +74,15 @@
 			    <option value="{{schedule_name}}">{{schedule_name}}</option>
 		        {% endfor %}
 		    </select>
-
+            <p></p>
             <input type="submit" name="grafik_update" value="Edycja grafiku">
 			<input type="submit" name="grafik_update" value="Usunięcie grafiku">
-			<p>Należy dodac okno potwierdzające czy użytkownik </p>
-			<p>chce usunąć grafik - DO ZROBIENIA</p>
+
 		</div>
         </form>
-	</div><p></p>
-
-
-
-
-
-
-######################################################################################################
+	</div>
+	<p></p>
+########################################################################################################################
     <div id="flash">
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -100,12 +94,12 @@
         {% endif %}
     {% endwith %}
     </div>
-######################################################################################################
+	<p></p>
 
 {% block body %} {% endblock %}
 
 <div id="footer">
-Copyright Marcin Pieczyński
+Copyright Marcin Pieczyński, kontakt marcin-pieczynski@wp.pl
 </div>
 </body>
 </html>

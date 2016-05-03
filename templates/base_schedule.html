@@ -5,7 +5,12 @@
 
     <p> Wprowadź nazwę dla Grafiku. Domyślnie będzie ona zawierała dzisiejszą datę ale wprowadź coś od siebie.
     <p></p>
-    <p><input type="text" name="schedule_name" value="{{today}} wprowadź nazwę dla grafiku ..."></p>
+    {% if not schedule %}
+    <p><input type="text" name="schedule_name" value="{{today}} wprowadź nazwę dla grafiku ..." size="50"></p>
+    {% endif %}
+    {% if schedule %}
+    <p><input type="text" name="schedule_name" value="{{schedule.schedule_name}}" size="50"></p>
+    {% endif %}
 
     <p>Liczba osób na dyżurze -- w dzień>
     <select name="no_of_person_day">
@@ -57,19 +62,11 @@
     </select></p>
 
 
-    <p>Ważne! - program domyślnie uniemożliwia wprowadzenie dużuru 24h
-    <p>       - liczba możliwych dyżurów w ciągu 7 dni --> 4
+    <p>Ważne! - program domyślnie uniemożliwia wprowadzenie dużuru 24h - liczba możliwych dyżurów w ciągu 7 dni --> 4
     <p>
     <input type="submit" name="save_schedule" value="Uzupełnij Grafik Automatycznie !">
     <input type="submit" name="save_schedule" value="Zapisz Grafik w bazie danych">
     <input type="submit" name="save_schedule" value="Zapisz w formacie PDF">
-
-
-
-
-
-
-
 
 
 {% block table %} {% endblock %}

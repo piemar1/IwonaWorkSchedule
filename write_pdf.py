@@ -19,15 +19,17 @@ import io
 
 
 # dodanie czcionki z polskimi literami
-pdfmetrics.registerFont(TTFont('Tinos-Regular', 'Tinos-Regular.ttf'))
-pdfmetrics.registerFont(TTFont('Tinos-Bold', 'Tinos-Bold.ttf'))
+pdfmetrics.registerFont(TTFont('Tinos-Regular', 'static/fonts/Tinos-Regular.ttf'))
+pdfmetrics.registerFont(TTFont('Tinos-Bold', 'static/fonts/Tinos-Bold.ttf'))
 
 styles=getSampleStyleSheet()
 style1 = ParagraphStyle(name="myStyleCenter", alignment=TA_CENTER, fontName="Tinos-Bold")
 style2 = ParagraphStyle(name="myStyleLEFT", alignment=TA_LEFT, fontName="Tinos-Regular")
+style3 = ParagraphStyle(name="myStyle", alignment=TA_CENTER, fontName="Tinos-Regular")
 
 styles.add(style1)
 styles.add(style2)
+styles.add(style3)
 
 
 class WritePDF:
@@ -45,14 +47,7 @@ class WritePDF:
         self.width, self.height = letter
         self.styles = getSampleStyleSheet()
 
-        # self.file_name = "{}.pdf".format(self.schedule.schedule_name)
-        # self.buffer = io.StringIO()             # buffor do tworzenia pliku w pamięci
-        # self.buffer = io.BytesIO()             # buffor do tworzenia pliku w pamięci
-        # self.buffer = io.FileIO("pdf")
-
-
         self.buffer = file_like_handle
-
         self.story = []
 
     def run(self):
@@ -62,12 +57,7 @@ class WritePDF:
         def make_landscape(canvas,doc):
             canvas.setPageSize(landscape(letter))
 
-        # creation of the BaseDocTempalte. showBoundary=0 to hide the debug borders
-        # self.doc = BaseDocTemplate(self.file_name,
-        #                            showBoundary=1,
-        #                            pagesize=landscape(letter))
-
-        # tworzenie pliku w bufforze !!!!
+        # file initialization in buffer !!!!
         self.doc = BaseDocTemplate(self.buffer,
                                    showBoundary=1,
                                    pagesize=landscape(letter))
@@ -86,19 +76,8 @@ class WritePDF:
 
         self.create_text()
         self.create_table()
+        self.create_footer()
         self.doc.build(self.story)
-
-        # print("self.buffer.tell()", self.buffer.tell())
-        # print("self.buffer.tell()", self.buffer.read())
-        # print("self.buffer.tell()", self.buffer.getbuffer())   #!!!!!!!!!!!!!!!!!!!11
-        #
-        #
-        # pdf_file = self.buffer.getbuffer()
-        #
-        #
-        # # pdf_file = self.buffer.getvalue()
-        # return pdf_file
-
 
     def create_text(self):
         """
@@ -176,7 +155,13 @@ class WritePDF:
         self.story.append(table)
 
 
+    def create_footer(self):
 
+        header_text = u"Grafik przygotowany w programie GrafikIwonki. " \
+                      u"Copyright Marcin Pieczyński, kontakt marcin-pieczynski@wp.pl"
+        p = Paragraph(header_text, styles['myStyle'])
+        self.story.append(Spacer(1, 0.5*cm))
+        self.story.append(p)
 
 
 if __name__ == "__main__":
@@ -207,13 +192,14 @@ if __name__ == "__main__":
 
     first_schedule = Schedule(schedule_name, creation_date, month, year, crew, schedule)
 
-    from grafikiwonki import get_month_calendar
+    from main import get_month_calendar
 
     month_calendar = get_month_calendar(first_schedule.year, first_schedule.month)
     # print(month_calendar)
 
 
-    t = WritePDF(first_schedule, month_calendar, 24, 14)
+
+    t = WritePDF("test.pdf", first_schedule, month_calendar, 24, 14)
     t.run()
 
 
