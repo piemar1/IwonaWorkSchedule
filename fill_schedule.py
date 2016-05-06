@@ -58,10 +58,16 @@ def get_free_people(day_number, people, work, no_of_working_days):
         person.take_work(day_number, work)       #  wprowadzanie zmian w grafiku
         people_filled_example_work.append(person)
 
-    return [person.name for person in people_filled_example_work if
-            person.filtre_double_work() and
-            person.filtre_work_days_in_week(4) and
-            person.filtre_work_days_in_month(no_of_working_days)]
+    # filtrowanie osób na podstawie parametrów
+    selected_person = [person for person in people_filled_example_work if
+                     person.filtre_double_work() and
+                     person.filtre_work_days_in_week(4) and
+                     person.filtre_work_days_in_month(no_of_working_days)]
+
+    # porządkowanie lisry osób ze względeu na liczbą przydzielonych dyżurów
+    selected_person.sort(key = lambda person: person.get_working_days_number_person(), reverse=True)
+
+    return [person.name for person in selected_person]
 
 
 def fill_the_schedule(schedule, no_of_working_days, person_per_day, person_per_night):
@@ -81,8 +87,8 @@ def fill_the_schedule(schedule, no_of_working_days, person_per_day, person_per_n
 
         for night in range(number_of_need_night):
 
-            # losowanie osoby
-            selected_person_name = random.choice(list_of_free_persons)
+            # wybór osoby
+            selected_person_name = list_of_free_persons.pop()
 
             # zdobycie numeru wylosowanej osoby w liście people
             selected_person_number = get_person_number_by_name(selected_person_name, people)
@@ -90,9 +96,6 @@ def fill_the_schedule(schedule, no_of_working_days, person_per_day, person_per_n
 
             # wprowadzenie zmiany do grafiku
             people[selected_person_number].take_work(day_number, "N")
-
-            # usunięcie osoby z listy osób dostępnych
-            list_of_free_persons.remove(selected_person_name)
 
         # DAYS
 
@@ -103,16 +106,15 @@ def fill_the_schedule(schedule, no_of_working_days, person_per_day, person_per_n
         list_of_free_persons = get_free_people(day_number, people, "D", no_of_working_days)
 
         for day in range(number_of_need_days):
-            selected_person_name = random.choice(list_of_free_persons)    # losowanie osoby
+
+            # wybór osoby
+            selected_person_name = list_of_free_persons.pop()
 
             # zdobycie numeru wylosowanej osoby w liście people
             selected_person_number = get_person_number_by_name(selected_person_name, people)
 
             # wprowadzenie zmiany do grafiku
             people[selected_person_number].take_work(day_number, "D")
-
-            # usunięcie osoby z listy osób dostępnych
-            list_of_free_persons.remove(selected_person_name)
 
     return [person.schedule for person in people]
 
@@ -151,7 +153,10 @@ if __name__ == '__main__':
 
     first_schedule = Schedule(schedule_name, creation_date, month, year, crew, schedule)
 
-    filled_schedule = fill_the_schedule(first_schedule, number_of_working_days, person_per_day, person_per_night)
+    first_schedule.schedule = fill_the_schedule(first_schedule, number_of_working_days, person_per_day, person_per_night)
 
-    for elem in filled_schedule:
-        print(elem)
+    for no,(name, one_schedule) in enumerate(zip(first_schedule.crew, first_schedule.schedule)):
+        person = Person(name, one_schedule)
+
+        print(name, one_schedule, person.get_number_of_nights(),
+              person.get_number_of_days(), person.get_working_days_number_person())

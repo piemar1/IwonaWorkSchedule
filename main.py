@@ -1,24 +1,18 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python
 __author__ = 'Marcin Pieczyński'
-"""
-przekazywanie między widikami obiektów w url, np przekazywanie id z bazy danych  !!!!!!!!!!!!!!!!!1
-"""
 
-import os
-import io
-# from werkzeug import secure_filename
-# from werkzeug.datastructures import FileStorage
-# import requests
+
 
 from flask import Flask, render_template, flash, redirect, request, session, make_response, Response, url_for, send_file
 from database import *
 from models import Team, Schedule
 
+import io
 import datetime
 import calendar
 import webbrowser
-import _thread
+import threading
 
 MONTHS = [u"styczeń", u"luty", u"marzec", u"kwiecień", u"maj", u"czerwiec", u"lipiec",
           u"sierpień", u"wrzesień", u"październik", u"listopad", u"grudzień"]
@@ -80,7 +74,8 @@ WORKING_DAYS_NUMBERS = {10: 7,
                         24: 16}
 TEAM_SIZE = 15
 
-DEBUG = True  # configuration
+# DEBUG = True  # configuration
+
 SECRET_KEY = 'l55Vsm2ZJ5q1U518PlxfM5IE2T42oULB'
 UPLOAD_FOLDER = '/uploads/'
 ALLOWED_EXTENSIONS = set("pdf")
@@ -96,7 +91,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #     return "." in filename and filename.rsplit(".", 1)[1] in ALLOWED_EXTENSIONS
 
 
-def read_current_team():
+def read_current_team(remove_empty=False):
     """
     Funkcja odczytuje dane wprowadzone na stronie dla team  i zwraca instancję Team
     """
@@ -107,7 +102,10 @@ def read_current_team():
     while 1:
         try:
             person = request.form["person" + str(no)].strip()
-            crew.append(person)
+            if remove_empty and not person:
+                pass
+            else:
+                crew.append(person)
             no += 1
         except KeyError:
             break
@@ -339,27 +337,21 @@ def grafik_update():
 def team_update():
 
     team = read_current_team()
-    print("session['team_size']", session["team_size"])
-    print("team.crew", team.crew)
 
     if request.method == 'POST':
 
         if request.form["create_team"] == u"dodaj osobę":
             team.crew.append("")
-
-            print("session['team_size']", session["team_size"])
             flash(u"Do załogi '{}' dodano nową osobę.".format(team.team_name))
 
         elif request.form["create_team"] == u"odejmij osobę":
             team.crew.pop()
-
-            print("session['team_size']", session["team_size"])
             flash(u"Załogę '{}' zmniejszono o jedną osobę.".format(team.team_name))
 
         if request.form["create_team"] == u"Zapisz załogę":
+            team = read_current_team(remove_empty=True)
             save_team_to_db(team)
             flash(u"Załoga '{}' została zapisana do bazy danych.".format(team.team_name))
-
 
         return render_template('Existing_team.html',
                                team_names = get_team_names_from_db(),
@@ -505,22 +497,32 @@ def schedule_update():
 #     resp.content_type = "document/pdf"
 #     return resp
 
+
 if __name__ == '__main__':
 
+
+    # app.debug = True
+    # app.run()
+
+    # Below code works ONLY if app.debug = False and should be used only in production
+
     def start_app():
-        print("run")
+        app.debug = False
         app.run()
 
     def open_webbroser():
-        print("open web")
         webbrowser.open("http://127.0.0.1:5000")
 
     try:
-        print("sefefesfs")
-        _thread.start_new_thread(start_app())
-        print("sefefesfs")
-        _thread.start_new_thread(open_webbroser())
-        print("sefefesfs")
-
+        one = threading.Thread(target=start_app)
+        one.start()
+        print("time")
+        second = threading.Thread(target=open_webbroser)
+        second.start()
     except:
         print("Error")
+
+
+
+
+

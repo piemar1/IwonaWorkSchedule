@@ -4,7 +4,7 @@
 landscape__author__ = 'marcin'
 
 
-from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.pagesizes import landscape, A4
 from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.platypus import BaseDocTemplate, Frame, Paragraph, PageTemplate, Table, Spacer, TableStyle
@@ -44,7 +44,7 @@ class WritePDF:
         self.month_working_days = month_working_days
         self.no_of_workdays = no_of_workdays
 
-        self.width, self.height = letter
+        self.width, self.height = A4
         self.styles = getSampleStyleSheet()
 
         self.buffer = file_like_handle
@@ -55,17 +55,17 @@ class WritePDF:
         Run the report
         """
         def make_landscape(canvas,doc):
-            canvas.setPageSize(landscape(letter))
+            canvas.setPageSize(landscape(A4))
 
         # file initialization in buffer !!!!
         self.doc = BaseDocTemplate(self.buffer,
-                                   showBoundary=1,
-                                   pagesize=landscape(letter))
+                                   showBoundary=1,   # margines
+                                   pagesize=landscape(A4))
 
         # create the frames. Here you can adjust the margins
-        frame = Frame(self.doc.leftMargin-60,
+        frame = Frame(self.doc.leftMargin-65,
                       self.doc.bottomMargin - 50,
-                      self.doc.width + 120,
+                      self.doc.width + 125,
                       self.doc.height + 110, id='first_frame')
 
         # add the PageTempaltes to the BaseDocTemplate.
@@ -114,15 +114,21 @@ class WritePDF:
 
         line = ["Lp", "Nazwisko i imię"]
         line.extend([day for no, day in self.month_calendar])
+        line.extend(["D", "N", "DN"])
         data.append(line)
 
         # zbieranie info o columnach danych dla soboty i niedzieli
         weekend_columns = [n for n, elem in enumerate(line) if elem in ["so", "n"]]
 
         # wypełnianie tabeli dla poszczególnych osób
-        for n, (person, one_schedule) in enumerate(zip(self.schedule.crew, self.schedule.schedule)):
-            line = ["{}.".format(str(n +1 )), person]
+        for n, (person_name, one_schedule) in enumerate(zip(self.schedule.crew, self.schedule.schedule)):
+
+            line = ["{}.".format(str(n +1 )), person_name]
             line.extend([daywork for daywork in one_schedule])
+            one_person = Person(person_name, one_schedule)
+            line.append(one_person.get_number_of_days())
+            line.append(one_person.get_number_of_nights())
+            line.append(one_person.get_working_days_number_person())
             data.append(line)
 
         # liczba wierszy w tabeli
@@ -131,12 +137,17 @@ class WritePDF:
         # ustawianie stylu / coloru dla soboty i niedzieli
         color_col = [('BACKGROUND', (col, 0), (col, row_number), colors.lightgrey) for col in weekend_columns]
 
-        table = Table(data)
+        col_width = [0.7 * cm, 3.7 * cm]
+        col_width.extend(len(self.month_calendar) * [0.6 * cm])
+        col_width.extend([0.7 * cm, 0.7 * cm, 0.7 * cm])
+
+        table = Table(data, col_width)
+
         table.hAlign = "CENTRE"
 
         # styl tabeli
         mytablestyle = [("FONTNAME", (0,0),(-1,-1), 'Tinos-Regular'),
-                        ("FONTSIZE", (0,0),(-1,-1), 8.5),
+                        ("FONTSIZE", (0,0),(-1,-1), 8.0),
                         ("SPAN", (0,0), (0,1)),
                         ("SPAN", (1,0), (1,1)),
                         ('ALIGN',(0,0),(-1,-1),'CENTER'),
@@ -153,12 +164,18 @@ class WritePDF:
 
         self.story.append(Spacer(1, 1*cm))
         self.story.append(table)
+        self.story.append(Spacer(1, 0.1*cm))
+
+        header_text = "D - liczba dyżurów dziennych, N - liczba dużurów nocnych, DN - liczba dyżurów w miesiącu"
+        p = Paragraph(header_text, styles['myStyleLEFT'])
+        self.story.append(Spacer(1, 0.5*cm))
+        self.story.append(p)
+
 
 
     def create_footer(self):
 
-        header_text = u"Grafik przygotowany w programie GrafikIwonki. " \
-                      u"Copyright Marcin Pieczyński, kontakt marcin-pieczynski@wp.pl"
+        header_text = u"Grafik przygotowany w programie GrafikIwonki, kontakt marcin-pieczynski@wp.pl"
         p = Paragraph(header_text, styles['myStyle'])
         self.story.append(Spacer(1, 0.5*cm))
         self.story.append(p)
@@ -170,8 +187,8 @@ if __name__ == "__main__":
     creation_date = "today"
     month = "styczeń"
     year = 2016
-    crew = [u'Aaa', u'Bbb', u'C', u'D', u'E',
-            u'F', u'G', u'H', u'I', u'J',
+    crew = [u'Aaa', u'Iwona Pieczyńska', u'C', u'D', u'E',
+            u'F', u'G', u'Hggggggggggggggggggggggggg', u'I', u'J',
             u'K', u'L', u'Mmm', u'Nnn', u'O']
 
     schedule = [u'D.........UUUUUU..............N',

@@ -52,6 +52,27 @@ class Person:
                 number += 1
         return number
 
+    def get_number_of_nights(self):
+        """
+        Funkcja zwraca liczbę dyżurów nocnych w ciągu miesiąca grafiku.
+        """
+        number = 0
+        for day in self.schedule:
+            if day == u"N":
+                number += 1
+        return number
+
+    def get_number_of_days(self):
+        """
+        Funkcja zwraca liczbę dyżurów dziennych w ciągu miesiąca grafiku.
+        """
+        number = 0
+        for day in self.schedule:
+            if day == u"D":
+                number += 1
+        return number
+
+
     def wheather_day_is_free(self, number):
         """
         Metoda zwraca True jeśli osoba może przyjąć dyżur, False jeśli nie może przyjąć dyżuru.
