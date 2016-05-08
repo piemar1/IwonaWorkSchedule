@@ -84,12 +84,6 @@ app = Flask(__name__)
 app.config.from_object(__name__)   # wprowadzanie konfiguracja aplikacji z obecnej lokalizacji
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# def allowed_file(filename):
-#     """
-#     Funkcja sprawdza czy można uplodować zadany plik.
-#     """
-#     return "." in filename and filename.rsplit(".", 1)[1] in ALLOWED_EXTENSIONS
-
 
 def read_current_team(remove_empty=False):
     """
@@ -516,7 +510,6 @@ if __name__ == '__main__':
     try:
         one = threading.Thread(target=start_app)
         one.start()
-        print("time")
         second = threading.Thread(target=open_webbroser)
         second.start()
     except:
