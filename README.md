@@ -11,11 +11,9 @@ Ready to use, but still has to be optimalised and completed with JS.
 
 
 # Requirements
-Flask
-
-SQLAlchemy
-
-reportlab
+Flask==0.10.1
+reportlab==3.3.0
+SQLAlchemy==1.0.12
 
 
 # Initialization
