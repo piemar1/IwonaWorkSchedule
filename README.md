@@ -12,11 +12,13 @@ Ready to use, but still has to be optimalised and completed with JS.
 
 # Requirements
 Flask
+
 SQLAlchemy
+
 reportlab
 
 
 # Initialization
 
-main.py
+Just run main.py in python3.4
 
