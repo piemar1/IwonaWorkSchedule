@@ -7,7 +7,7 @@
 
 <p> Wprowadź nazwę dla zespołu. Domyślnie będzie ona zawierała dzisiejszą datę ale wprowadź coś od siebie. </p>
 Tutaj wpisz nazwę dla zespołu -->
-<input type="text" name="team_name" value="{{team.team_name}}" size="50">
+<input type="text" name="team_name" value="{{team_name}}" size="50">
 <p></p>
 <input type="submit" name="create_team" value="dodaj osobę">
 <input type="submit" name="create_team" value="odejmij osobę">
@@ -24,7 +24,7 @@ Tutaj wpisz nazwę dla zespołu -->
     {% for n in range(size)%}
     <tr>
         <td>{{n + 1}}</td>
-        <td><input type="text" name="person{{n}}" value="{{team.crew[n]}}"></td>
+        <td><input type="text" name="person{{n}}" value="{{crew[n]}}"></td>
     </tr>
     {% endfor %}
 </table>

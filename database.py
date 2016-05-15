@@ -174,10 +174,12 @@ if __name__ == "__main__":
     teamA = Team("drużynaA", date.today(), ["person1", "person2", "person3"])
     scheduleA = Schedule("scheduleA", date.today(), 5, 2016,
                          ["person1", "person2", "person3"], ["D.N", "D.D", ".DN"])
+
+    print(type(date.today()))
     print(teamA)
     print(scheduleA)
 
-    db_init()
+    # db_init()
 
     # save_team_to_db(teamA)
     # save_schedule_to_db(scheduleA)
@@ -185,8 +187,8 @@ if __name__ == "__main__":
     # delete_team_in_db("drużynaA")
     # delete_schedule_in_db("scheduleA")
 
-    print(get_team_names_from_db())
-    print(get_schedule_names_from_db())
+    # print(get_team_names_from_db())
+    # print(get_schedule_names_from_db())
 
     # print(get_team_from_db("drużynaA"))
     # print(get_schedule_from_db(" wprowadź nazwę..."))

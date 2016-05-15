@@ -5,11 +5,11 @@
 
     <p> Wprowadź nazwę dla Grafiku. Domyślnie będzie ona zawierała dzisiejszą datę ale wprowadź coś od siebie.
     <p></p>
-    {% if not schedule %}
+    {% if not schedule_name %}
     <p><input type="text" name="schedule_name" value="{{today}} wprowadź nazwę dla grafiku ..." size="50"></p>
     {% endif %}
-    {% if schedule %}
-    <p><input type="text" name="schedule_name" value="{{schedule.schedule_name}}" size="50"></p>
+    {% if schedule_name %}
+    <p><input type="text" name="schedule_name" value="{{schedule_name}}" size="50"></p>
     {% endif %}
 
     <p>Liczba osób na dyżurze -- w dzień>

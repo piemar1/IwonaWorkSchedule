@@ -2,10 +2,8 @@
 #!/usr/bin/python
 __author__ = 'Marcin Pieczyński'
 
-
-
-from flask import Flask, render_template, flash, redirect, request, session, make_response, Response, url_for, send_file
-from database import *
+from flask import Flask, render_template, flash, redirect, request, session, Response, url_for
+from sqlalchemy_db import *
 from models import Team, Schedule
 
 import io
@@ -74,15 +72,12 @@ WORKING_DAYS_NUMBERS = {10: 7,
                         24: 16}
 TEAM_SIZE = 15
 
-# DEBUG = True  # configuration
-
 SECRET_KEY = 'l55Vsm2ZJ5q1U518PlxfM5IE2T42oULB'
 UPLOAD_FOLDER = '/uploads/'
 ALLOWED_EXTENSIONS = set("pdf")
 
 app = Flask(__name__)
 app.config.from_object(__name__)   # wprowadzanie konfiguracja aplikacji z obecnej lokalizacji
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 def read_current_team(remove_empty=False):
@@ -179,6 +174,11 @@ def get_number_of_working_days(month_calendar):
 @app.route('/')     # Pierwsza strona
 def index():
     flash(u"Witam w aplikacji GafikIwonki do układania grafików pracy.")
+    return redirect(url_for('main_page'))
+
+
+@app.route('/GrafikIwonki', methods=['GET', 'POST'])     # Pierwsza strona
+def main_page():
     return render_template('Grafik Iwonki.html',
                            months        = MONTHS,
                            years         = YEARS,
@@ -186,6 +186,49 @@ def index():
                            current_year  = CURRENT_YEAR,
                            team_names    = get_team_names_from_db(),
                            schedule_names= get_schedule_names_from_db())
+
+
+@app.route('/Team/<team_name>', methods=['GET', 'POST'])     # Strona z zapisanymi drużynami
+def existing_team(team_name=None):
+
+    team_name = session["team_name"]
+    crew = session["team_crew"]
+
+    return render_template('Existing_team.html',
+                           team_names    = get_team_names_from_db(),
+                           schedule_names= get_schedule_names_from_db(),
+                           months        = MONTHS,
+                           years         = YEARS,
+                           today         = TODAY,
+                           current_month = CURRENT_MONTH,
+                           current_year  = CURRENT_YEAR,
+                           team_name     = team_name,
+                           crew          = crew,
+                           size          = len(crew))
+
+@app.route('/Schedule/<schedule_name>', methods=['GET', 'POST'])     # Strona z zapisanymi grafikami
+def existing_schedule(schedule_name=None):
+
+    schedule_crew = session["team_crew"]
+    month_calendar = session["month_calendar"]
+    schedule_schedule = session["schedule_schedule"]
+    schedule_name = session["schedule_name"]
+
+    return render_template('Existing_schedule.html',
+                           months         = MONTHS,
+                           years          = YEARS,
+                           current_month  = CURRENT_MONTH,
+                           current_year   = CURRENT_YEAR,
+                           month_calendar = month_calendar, # plan miesiąca
+                           work           = WORK,
+                           team_names     = get_team_names_from_db(),
+                           schedule_names = get_schedule_names_from_db(),
+                           schedule_name = schedule_name,
+                           working_days   = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)],
+                           no_of_daywork  = WORKING_DAYS_NUMBERS[get_number_of_working_days_month(month_calendar)],
+                           WORKING_DAYS_NUMBER_TEXT = WORKING_DAYS_NUMBER_TEXT.values(),
+                           WORKING_DAYS_NUMBERS     = WORKING_DAYS_NUMBERS.values(),
+                           person_schedules         = list(zip(schedule_crew, schedule_schedule)))
 
 
 # Obsługa klawiszy w panelu głównym, inicjalizacja i edycja grafiku oraz załóg
@@ -212,33 +255,19 @@ def grafik_update():
             team_to_be_edit = request.form["edit_team"]
             team = get_team_from_db(team_to_be_edit)
 
+            session["team_name"] = team.team_name
+            session["team_crew"] = team.crew
+
             flash(u"Otworzono okno służące do edycji załogi '{}'.".format(team.team_name))
-            return render_template('Existing_team.html',
-                                   team_names    = get_team_names_from_db(),
-                                   schedule_names= get_schedule_names_from_db(),
-                                   months        = MONTHS,
-                                   years         = YEARS,
-                                   today         = TODAY,
-                                   current_month = CURRENT_MONTH,
-                                   current_year  = CURRENT_YEAR,
-                                   team          = team,
-                                   size          = len(team.crew))
+            return redirect(url_for('existing_team', team_name=team.team_name))
 
         elif request.form["grafik_update"] == u"Usuń załogę":             # Delete /existed team
 
             team_to_delate = request.form["edit_team"]
-
             delete_team_in_db(team_to_delate)
+
             flash(u"Uwaga! Załoga '{}' została usunięta z rejestru aplikacji.".format(team_to_delate))
-
-            return render_template('Grafik Iwonki.html',
-                                   months        = MONTHS,
-                                   years         = YEARS,
-                                   current_month = CURRENT_MONTH,
-                                   current_year  = CURRENT_YEAR,
-                                   team_names    = get_team_names_from_db(),
-                                   schedule_names= get_schedule_names_from_db(),)
-
+            return redirect(url_for('main_page'))
 
         elif request.form["grafik_update"] == u"Stwórz nowy grafik":     # Create new schedule
 
@@ -251,8 +280,6 @@ def grafik_update():
             month_calendar = get_month_calendar(selected_year, selected_month)
             no_of_daywork = WORKING_DAYS_NUMBERS[get_number_of_working_days_month(month_calendar)]
 
-            session["selected_month"] = selected_month
-            session["selected_year"] = selected_year
             session["team_crew"] = team.crew
             session["month_calendar"] = month_calendar
 
@@ -283,6 +310,11 @@ def grafik_update():
             schedule_to_edit = request.form["schedule_to_edit"]
             schedule = get_schedule_from_db(schedule_to_edit)
 
+            if not schedule:
+                flash(u"Brak możliwości wyświetlenia grafiku o nazwie '{}'. "
+                      u"Przyczyną jest brak żądanej drużyny w bazie danych.".format(schedule_to_edit))
+                return redirect(url_for('main_page'))
+
             month_calendar = get_month_calendar(schedule.year, schedule.month)
             no_of_daywork = WORKING_DAYS_NUMBERS[get_number_of_working_days_month(month_calendar)]
 
@@ -290,40 +322,21 @@ def grafik_update():
             session["selected_year"] = schedule.year
             session["team_crew"] = schedule.crew
             session["month_calendar"] = month_calendar
+            session["schedule_schedule"] = schedule.schedule
 
             flash(u"Edycja grafiku pracy '{}' stworzonego dla miesiąca {} {}.".format(schedule.schedule_name,
-                                                                                    schedule.month,
-                                                                                    schedule.year))
+                                                                                      schedule.month,
+                                                                                      schedule.year))
 
-            return render_template('Existing_schedule.html',
-                                   months         = MONTHS,
-                                   years          = YEARS,
-                                   current_month  = CURRENT_MONTH,
-                                   current_year   = CURRENT_YEAR,
-                                   month_calendar = month_calendar, # plan miesiąca
-                                   work           = WORK,
-                                   team_names     = get_team_names_from_db(),
-                                   schedule_names= get_schedule_names_from_db(),
-                                   schedule       = schedule,
-                                   person_schedules = list(zip(schedule.crew, schedule.schedule)),
-                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)],
-                                   WORKING_DAYS_NUMBER_TEXT = WORKING_DAYS_NUMBER_TEXT.values(),
-                                   no_of_daywork = no_of_daywork,
-                                   WORKING_DAYS_NUMBERS = WORKING_DAYS_NUMBERS.values())
+            return redirect(url_for('existing_schedule', schedule_name=schedule.schedule_name))
 
         elif request.form["grafik_update"] == u"Usunięcie grafiku":  # Delete existed schedule
             schedule_to_delate = request.form["schedule_to_edit"]
 
             delete_schedule_in_db(schedule_to_delate)
-            flash(u"Uwaga! Grafik '{}' został usunięty z rejestru aplikacji.".format(schedule_to_delate))
 
-            return render_template('Grafik Iwonki.html',
-                                   months        = MONTHS,
-                                   years         = YEARS,
-                                   current_month = CURRENT_MONTH,
-                                   current_year  = CURRENT_YEAR,
-                                   team_names    = get_team_names_from_db(),
-                                   schedule_names= get_schedule_names_from_db())
+            flash(u"Uwaga! Grafik '{}' został usunięty z rejestru aplikacji.".format(schedule_to_delate))
+            return redirect(url_for('main_page'))
 
 
 # obsługa klawiszy w oknie z załogą, zapisywanie i edycja
@@ -342,25 +355,20 @@ def team_update():
             team.crew.pop()
             flash(u"Załogę '{}' zmniejszono o jedną osobę.".format(team.team_name))
 
-        if request.form["create_team"] == u"Zapisz załogę":
+        elif request.form["create_team"] == u"Zapisz załogę":
             team = read_current_team(remove_empty=True)
             save_team_to_db(team)
             flash(u"Załoga '{}' została zapisana do bazy danych.".format(team.team_name))
 
-        return render_template('Existing_team.html',
-                               team_names = get_team_names_from_db(),
-                               months     = MONTHS,
-                               years      = YEARS,
-                               current_month = CURRENT_MONTH,
-                               current_year  = CURRENT_YEAR,
-                               today      = TODAY,
-                               team       = team,
-                               size       = len(team.crew))
+        session["team_name"] = team.team_name
+        session["team_crew"] = team.crew
+        return redirect(url_for('existing_team', team_name=team.team_name))
 
 
 # obsługa klawiszy w oknie z grafikiem, zapisywanie i edycja
 @app.route('/schedule_update', methods=['POST', 'GET'])
 def schedule_update():
+
     if request.method == 'POST':
 
         # odczytanie wprowadzonych danych dla schedule i zrobienie z tego instancji
@@ -373,27 +381,19 @@ def schedule_update():
         month_working_days = request.form["no_of_working_days_in_nonth"]
         no_of_workdays = request.form["no_of_working_days_per_person"]
 
+        session["team_crew"] = schedule.crew
+        session["month_calendar"] = month_calendar
+        session["schedule_schedule"] = schedule.schedule
+        session["schedule_name"] = schedule.schedule_name
+
         if request.form["save_schedule"] == u"Zapisz Grafik w bazie danych":     # Create new schedule
+
             save_schedule_to_db(schedule)
             flash(u"Dokonano zapisu grafiku pracy {} w bazie danyc.".format(schedule.schedule_name))
 
-            return render_template('Existing_schedule.html',
-                                   months         = MONTHS,
-                                   years          = YEARS,
-                                   current_month  = CURRENT_MONTH,
-                                   current_year   = CURRENT_YEAR,
-                                   month_calendar = month_calendar, # plan miesiąca
-                                   work           = WORK,
-                                   team_names     = get_team_names_from_db(),
-                                   schedule_names= get_schedule_names_from_db(),
-                                   schedule       = schedule,
-                                   person_schedules = list(zip(schedule.crew, schedule.schedule)),
-                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)],
-                                   WORKING_DAYS_NUMBER_TEXT = WORKING_DAYS_NUMBER_TEXT.values(),
-                                   no_of_daywork = no_of_daywork,
-                                   WORKING_DAYS_NUMBERS = WORKING_DAYS_NUMBERS.values())
+            return redirect(url_for('existing_schedule', schedule_name=schedule.schedule_name))
 
-        if request.form["save_schedule"] == u"Zapisz w formacie PDF":
+        elif request.form["save_schedule"] == u"Zapisz w formacie PDF":
 
             from write_pdf import WritePDF
 
@@ -403,10 +403,12 @@ def schedule_update():
             pdf = buffor.getvalue()
             print("PDF CREATED !!!!")
 
-            return Response(pdf, mimetype='application/pdf',
-                            headers={'Content-Disposition':u'attachment;filename=grafik.pdf'}) # BRAk polskich liter !!!!!
+            return Response(pdf,
+                            mimetype='application/pdf',
+                            headers={'Content-Disposition':u'attachment;filename=grafik.pdf'})
+                            # BRAk polskich liter w nazwie pliku!!!!!
 
-        if request.form["save_schedule"] == u"Uzupełnij Grafik Automatycznie !":     # Create new schedule
+        elif request.form["save_schedule"] == u"Uzupełnij Grafik Automatycznie !":     # Create new schedule
 
             print("START")
             person_per_day = int(request.form["no_of_person_day"])      # liczba osón na dyżurze dziennym
@@ -423,45 +425,27 @@ def schedule_update():
                                                           person_per_day,
                                                           person_per_night)
 
-                    flash(u"Dokonano automatycznego uzupełnienia grafiku {}.".format(schedule.schedule_name))
+                    session["team_crew"] = schedule.crew
+                    session["month_calendar"] = month_calendar
+                    session["schedule_schedule"] = schedule.schedule
+                    session["schedule_name"] = schedule.schedule_name
 
-                    return render_template('Existing_schedule.html',
-                                           months         = MONTHS,
-                                           years          = YEARS,
-                                           current_month  = CURRENT_MONTH,
-                                           current_year   = CURRENT_YEAR,
-                                           month_calendar = month_calendar, # plan miesiąca
-                                           work           = WORK,
-                                           team_names     = get_team_names_from_db(),
-                                           schedule_names = get_schedule_names_from_db(),
-                                           schedule       = schedule,
-                                           person_schedules = list(zip(schedule.crew, schedule.schedule)),
-                                           working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)],
-                                           WORKING_DAYS_NUMBER_TEXT = WORKING_DAYS_NUMBER_TEXT.values(),
-                                           no_of_daywork = no_of_daywork,
-                                           WORKING_DAYS_NUMBERS = WORKING_DAYS_NUMBERS.values())
+                    flash(u"Dokonano automatycznego uzupełnienia grafiku {}.".format(schedule.schedule_name))
+                    return redirect(url_for('existing_schedule', schedule_name=schedule.schedule_name))
 
                 except IndexError:
                     number_of_tries -= 1
 
+            session["team_crew"] = schedule.crew
+            session["month_calendar"] = month_calendar
+            session["schedule_schedule"] = schedule.schedule
+            session["schedule_name"] = schedule.schedule_name
+
             flash(u"Atomatyczne uzupełnienie grafiku {} nie powiodło się !!! ;-(\n"
                   u"Zalecamy zmianę parametrów automatycznego uzupełniania grafiku "
                   u"na mniej wymagające.".format(schedule.schedule_name))
-            return render_template('Existing_schedule.html',
-                                   months         = MONTHS,
-                                   years          = YEARS,
-                                   current_month  = CURRENT_MONTH,
-                                   current_year   = CURRENT_YEAR,
-                                   month_calendar = month_calendar, # plan miesiąca
-                                   work           = WORK,
-                                   team_names     = get_team_names_from_db(),
-                                   schedule_names = get_schedule_names_from_db(),
-                                   schedule       = schedule,
-                                   person_schedules = list(zip(schedule.crew, schedule.schedule)),
-                                   working_days    = WORKING_DAYS_NUMBER_TEXT[get_number_of_working_days(month_calendar)],
-                                   WORKING_DAYS_NUMBER_TEXT = WORKING_DAYS_NUMBER_TEXT.values(),
-                                   no_of_daywork = no_of_daywork,
-                                   WORKING_DAYS_NUMBERS = WORKING_DAYS_NUMBERS.values())
+
+            return redirect(url_for('existing_schedule', schedule_name=schedule.schedule_name))
 
 
 # @app.route('/uploads/<filename>/')
@@ -494,26 +478,25 @@ def schedule_update():
 
 if __name__ == '__main__':
 
+    app.debug = True
+    app.run()
 
-    # app.debug = True
-    # app.run()
+    # Below code works ONLY if app.debug = False and have to be used in production
 
-    # Below code works ONLY if app.debug = False and should be used only in production
-
-    def start_app():
-        app.debug = False
-        app.run()
-
-    def open_webbroser():
-        webbrowser.open("http://127.0.0.1:5000")
-
-    try:
-        one = threading.Thread(target=start_app)
-        one.start()
-        second = threading.Thread(target=open_webbroser)
-        second.start()
-    except:
-        print("Error")
+    # def start_app():
+    #     app.debug = False
+    #     app.run()
+    #
+    # def open_webbroser():
+    #     webbrowser.open("http://127.0.0.1:5000")
+    #
+    # try:
+    #     one = threading.Thread(target=start_app)
+    #     one.start()
+    #     second = threading.Thread(target=open_webbroser)
+    #     second.start()
+    # except:
+    #     print("Error")
 
 
 
