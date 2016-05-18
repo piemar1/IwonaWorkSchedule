@@ -478,7 +478,7 @@ def schedule_update():
 
 if __name__ == '__main__':
 
-    app.debug = True
+    app.debug = False
     app.run()
 
     # Below code works ONLY if app.debug = False and have to be used in production
@@ -486,10 +486,10 @@ if __name__ == '__main__':
     # def start_app():
     #     app.debug = False
     #     app.run()
-    #
+    
     # def open_webbroser():
     #     webbrowser.open("http://127.0.0.1:5000")
-    #
+    
     # try:
     #     one = threading.Thread(target=start_app)
     #     one.start()
