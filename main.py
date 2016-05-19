@@ -282,6 +282,8 @@ def grafik_update():
 
             session["team_crew"] = team.crew
             session["month_calendar"] = month_calendar
+            session["selected_month"] = selected_month
+            session["selected_year"] = selected_year
 
             flash(u"Czas przystąpić do układania grafiku dla załogi '{}' dla miesiąca {} {}.".format(team.team_name,
                                                                                                   selected_month,
@@ -478,7 +480,7 @@ def schedule_update():
 
 if __name__ == '__main__':
 
-    app.debug = False
+    app.debug = True
     app.run()
 
     # Below code works ONLY if app.debug = False and have to be used in production
