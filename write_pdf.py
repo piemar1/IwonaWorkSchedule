@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python
 
-landscape__author__ = 'marcin'
+__author__ = 'Marcin Pieczyński'
 
 
 from reportlab.lib.pagesizes import landscape, A4

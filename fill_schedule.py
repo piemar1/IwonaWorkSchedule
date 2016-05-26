@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__author__ = 'marcin'
+__author__ = 'Marcin Pieczyński'
 
 
 import random

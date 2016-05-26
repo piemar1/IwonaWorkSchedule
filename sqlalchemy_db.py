@@ -1,4 +1,4 @@
-__author__ = 'marcin'
+__author__ = 'Marcin Pieczyński'
 
 
 from sqlalchemy import create_engine

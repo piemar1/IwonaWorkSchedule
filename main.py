@@ -480,7 +480,7 @@ def schedule_update():
 
 if __name__ == '__main__':
 
-    app.debug = False
+    app.debug = True
     app.run()
 
     # Below code works ONLY if app.debug = False and have to be used in production
