@@ -325,6 +325,7 @@ def grafik_update():
             session["team_crew"] = schedule.crew
             session["month_calendar"] = month_calendar
             session["schedule_schedule"] = schedule.schedule
+            session["schedule_name"] = schedule.schedule_name
 
             flash(u"Edycja grafiku pracy '{}' stworzonego dla miesiąca {} {}.".format(schedule.schedule_name,
                                                                                       schedule.month,
@@ -403,7 +404,7 @@ def schedule_update():
             pdf_buffor = WritePDF(buffor, schedule, month_calendar, month_working_days, no_of_workdays)
             pdf_buffor.run()                                    #  tu jest błąd  i jest kwestia buffor
             pdf = buffor.getvalue()
-            print("PDF CREATED !!!!")
+            # print("PDF CREATED !!!!")
 
             return Response(pdf,
                             mimetype='application/pdf',
@@ -412,7 +413,7 @@ def schedule_update():
 
         elif request.form["save_schedule"] == u"Uzupełnij Grafik Automatycznie !":     # Create new schedule
 
-            print("START")
+            # print("START")
             person_per_day = int(request.form["no_of_person_day"])      # liczba osón na dyżurze dziennym
             person_per_night = int(request.form["no_of_person_night"])  # liczba osón na dyżurze nocnym
             no_of_daywork = WORKING_DAYS_NUMBERS[get_number_of_working_days_month(month_calendar)]
@@ -480,7 +481,7 @@ def schedule_update():
 
 if __name__ == '__main__':
 
-    app.debug = True
+    app.debug = False
     app.run()
 
     # Below code works ONLY if app.debug = False and have to be used in production
@@ -488,10 +489,10 @@ if __name__ == '__main__':
     # def start_app():
     #     app.debug = False
     #     app.run()
-    
+    #
     # def open_webbroser():
     #     webbrowser.open("http://127.0.0.1:5000")
-    
+    #
     # try:
     #     one = threading.Thread(target=start_app)
     #     one.start()

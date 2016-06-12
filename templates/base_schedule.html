@@ -7,8 +7,7 @@
     <p></p>
     {% if not schedule_name %}
     <p><input type="text" name="schedule_name" value="{{today}} wprowadź nazwę dla grafiku ..." size="50"></p>
-    {% endif %}
-    {% if schedule_name %}
+    {% else %}
     <p><input type="text" name="schedule_name" value="{{schedule_name}}" size="50"></p>
     {% endif %}
 
